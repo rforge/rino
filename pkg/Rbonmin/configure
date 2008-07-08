@@ -1,0 +1,32 @@
+#! /bin/sh
+## For the time being, this is a simple shell script ...
+
+## Test whether a complete SYMPHONY library environment is available,
+## e.g. https://projects.coin-or.org/CoinBinary.
+
+## Find the R home directory.
+: ${R_HOME=`R RHOME`}
+if test -z "${R_HOME}"; then
+  echo "Could not determine R_HOME."
+  exit 1
+fi
+
+SYMPHONY_LIBS="-lSym -lCgl -lOsiClp -lClp -lOsi -lCoinUtils"
+
+
+(cd src/Bonmin && \
+    ./configure \
+    --enable-static --disable-shared --with-pic \
+    --with-application=no --disable-dependency-tracking \
+    --disable-cplex-libcheck --disable-glpk-libcheck \
+    --disable-osl-libcheck --disable-soplex-libcheck \
+    --disable-xpress-libcheck)
+BONMIN_INCLUDE_PATH="-IBonmin/include"
+BONMIN_LIB_PATH="-LBonmin/lib"
+BONMIN_TS="Bonmin.ts"
+
+sed -e "s|@SYMPHONY_INCLUDE_PATH@|${SYMPHONY_INCLUDE_PATH}|" \
+    -e "s|@SYMPHONY_LIB_PATH@|${SYMPHONY_LIB_PATH}|" \
+    -e "s|@SYMPHONY_TS@|${SYMPHONY_TS}|" \
+    src/Makevars.in > src/Makevars
+

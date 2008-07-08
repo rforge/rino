@@ -1,0 +1,8 @@
+#! /bin/sh
+(cd src/Bonmin; 
+  if test -f Makefile; then
+    make distclean || true
+    make distclean SUBDIRS= || true
+  fi)
+rm -f config.* src/BONMIN.ts #autom4te.cache  src/Makevars
+exit 0

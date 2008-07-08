@@ -1,0 +1,10 @@
+BONMIN_LIBS = -lbonmin -lipopt -lCbc -lCgl -lOsiClp -lOsi -lClp -lCoinUtils -lm
+
+PKG_CPPFLAGS = @BONMIN_INCLUDE_PATH@
+PKG_LIBS = @BONMIN_LIB_PATH@ $(BONMIN_LIBS)
+
+all: @BONMIN_TS@ $(SHLIB)
+
+BONMIN.ts:
+	@(cd Bonmin && make && make install)
+	touch $@
