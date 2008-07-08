@@ -1,0 +1,11 @@
+Package: Rlago
+Version: 0.0-1
+Date: 2008-07-08
+Title: LaGO in R
+Author: Stefan Theussl and Georg Zajko
+Maintainer: Stefan Theussl <stefan.theussl@wu-wien.ac.at>
+Description: An R interface to LaGO, a global optimizer for nonconvex mixed-integer nonlinear programs (version 0.3).
+License: GPL-2
+Depends: R (>= 2.7.1)
+URL: http://R-Forge.R-project.org/projects/rino,
+  http://projects.coin-or.org/LaGO/
