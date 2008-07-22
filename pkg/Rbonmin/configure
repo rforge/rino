@@ -1,7 +1,7 @@
 #! /bin/sh
 ## For the time being, this is a simple shell script ...
 
-## Test whether a complete SYMPHONY library environment is available,
+## Test whether a complete BONMIN library environment is available,
 ## e.g. https://projects.coin-or.org/CoinBinary.
 
 ## Find the R home directory.
@@ -11,9 +11,6 @@ if test -z "${R_HOME}"; then
   exit 1
 fi
 
-SYMPHONY_LIBS="-lSym -lCgl -lOsiClp -lClp -lOsi -lCoinUtils"
-
-
 (cd src/Bonmin && \
     ./configure \
     --enable-static --disable-shared --with-pic \
@@ -21,12 +18,13 @@ SYMPHONY_LIBS="-lSym -lCgl -lOsiClp -lClp -lOsi -lCoinUtils"
     --disable-cplex-libcheck --disable-glpk-libcheck \
     --disable-osl-libcheck --disable-soplex-libcheck \
     --disable-xpress-libcheck)
+
 BONMIN_INCLUDE_PATH="-IBonmin/include"
 BONMIN_LIB_PATH="-LBonmin/lib"
-BONMIN_TS="Bonmin.ts"
+BONMIN_TS="BONMIN.ts"
 
-sed -e "s|@SYMPHONY_INCLUDE_PATH@|${SYMPHONY_INCLUDE_PATH}|" \
-    -e "s|@SYMPHONY_LIB_PATH@|${SYMPHONY_LIB_PATH}|" \
-    -e "s|@SYMPHONY_TS@|${SYMPHONY_TS}|" \
+sed -e "s|@BONMIN_INCLUDE_PATH@|${BONMIN_INCLUDE_PATH}|" \
+    -e "s|@BONMIN_LIB_PATH@|${BONMIN_LIB_PATH}|" \
+    -e "s|@BONMIN_TS@|${BONMIN_TS}|" \
     src/Makevars.in > src/Makevars
 

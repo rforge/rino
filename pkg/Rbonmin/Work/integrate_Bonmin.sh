@@ -1,6 +1,6 @@
 ## Usage integrate_BONMIN.sh [BONMIN.tgz]
-## Integrates the latest GLPK package
-## theussl, 2008-04-18
+## Integrates the latest Bonmin source package
+## theussl, 2008-07-22
 
 ## where to put source files and headers
 URL="http://www.coin-or.org/download/source/Bonmin/"
@@ -88,7 +88,7 @@ fi
 
 
 ## --------------------------------------------
-## integrate Symphony sources to package
+## integrate Bonmin sources to package
 
 if [[ $get ]] ; then
     if [[ ! -s "${sources}" ]] ; then

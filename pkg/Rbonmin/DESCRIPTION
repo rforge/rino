@@ -1,8 +1,8 @@
 Package: Rbonmin
-Version: 0.0-1
-Date: 2008-07-08
+Version: 0.0-2
+Date: 2008-07-22
 Title: Bonmin in R
-Author: Martin Kober and Stefan Theussl
+Author: Stefan Theussl and Martin Kober
 Maintainer: Stefan Theussl <stefan.theussl@wu-wien.ac.at>
 Description: An R interface to the Bonmin nonlinear mixed integer solver (version 0.1.4).
 License: GPL-2
