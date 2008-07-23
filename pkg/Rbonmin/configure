@@ -19,7 +19,7 @@ fi
     --disable-osl-libcheck --disable-soplex-libcheck \
     --disable-xpress-libcheck)
 
-BONMIN_INCLUDE_PATH="-IBonmin/include"
+BONMIN_INCLUDE_PATH="-IBonmin/include -IBonmin/include/ipopt"
 BONMIN_LIB_PATH="-LBonmin/lib"
 BONMIN_TS="BONMIN.ts"
 

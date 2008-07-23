@@ -1,3 +1,3 @@
 BONMIN_LIBS = -lCgl -lOsiClp -lClp -lOsi -lCoinUtils -lIpopt -lCbc
-PKG_CPPFLAGS = -I$(BONMIN_HOME)/include
+PKG_CPPFLAGS = -I$(BONMIN_HOME)/include -I$(BONMIN_HOME)/include/ipopt
 PKG_LIBS = -L$(BONMIN_HOME)/lib $(BONMIN_LIBS)
