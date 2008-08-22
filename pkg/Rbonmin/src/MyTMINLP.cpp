@@ -7,10 +7,10 @@
 //
 // Date :  03/17/2006
 #include "MyTMINLP.hpp"
-
+#include "BonAmplInterface.hpp"
 
 bool 
-MyTMINLP::get_var_types(Index n, VariableType* var_types)
+MyTMINLP::get_variables_types(Index n, VariableType* var_types)
 {
   var_types[0] = BINARY;
   var_types[1] = CONTINUOUS;
@@ -19,13 +19,25 @@ MyTMINLP::get_var_types(Index n, VariableType* var_types)
   return true;
 }
 
+
 bool 
-MyTMINLP::get_constraints_types(Index m, ConstraintType* const_types)
+MyTMINLP::get_variables_linearity(Index n, Ipopt::TNLP::LinearityType* var_types)
+{
+  var_types[0] = Ipopt::TNLP::LINEAR;
+  var_types[1] = Ipopt::TNLP::NON_LINEAR;
+  var_types[2] = Ipopt::TNLP::NON_LINEAR;
+  var_types[3] = Ipopt::TNLP::LINEAR;
+  return true;
+}
+
+
+bool 
+MyTMINLP::get_constraints_linearity(Index m, Ipopt::TNLP::LinearityType* const_types)
 {
   assert (m==3);
-  const_types[0] = NON_LINEAR;
-  const_types[1] = LINEAR;
-  const_types[2] = LINEAR;
+  const_types[0] = Ipopt::TNLP::NON_LINEAR;
+  const_types[1] = Ipopt::TNLP::LINEAR;
+  const_types[2] = Ipopt::TNLP::LINEAR;
   return true;
 }
 bool 
@@ -190,8 +202,16 @@ MyTMINLP::eval_h(Index n, const Number* x, bool new_x,
 }
 
 void
-MyTMINLP::finalize_solution(SolverReturn status,
-                            Index n, const Number* x,
-                            Number obj_value) const
-{//don't need anything
+MyTMINLP::finalize_solution(TMINLP::SolverReturn status,
+                            Index n, const Number* x, Number obj_value)
+{
+  std::cout<<"Problem status: "<<status<<std::endl;
+  std::cout<<"Objective value: "<<obj_value<<std::endl;
+  if(printSol_ && x != NULL){
+    std::cout<<"Solution:"<<std::endl;
+    for(int i = 0 ; i < n ; i++){
+      std::cout<<"x["<<i<<"] = "<<x[i];
+      if(i < n-1) std::cout<<", ";}
+    std::cout<<std::endl;
+  }
 }

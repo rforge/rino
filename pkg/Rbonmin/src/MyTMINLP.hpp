@@ -8,8 +8,9 @@
 // Date :  03/17/2006
 #ifndef MyTNLP_HPP
 #define MyTNLP_HPP
-#include "TMINLP.hpp"
+#include "BonTMINLP.hpp"
 using namespace  Ipopt;
+using namespace Bonmin;
 /** A C++ example for interfacing an MINLP with bonmin.
    * This class implements the following NLP :
   * \f[ 
@@ -23,19 +24,22 @@ using namespace  Ipopt;
     \end{array}
     \f]
   */
-    
-class MyTMINLP : public TMINLP
-{
+
+
+
+class MyTMINLP : public TMINLP {
 public:
   /// Default constructor.
-  MyTMINLP(){}
+  MyTMINLP():
+printSol_(false){}
   
   /// virtual destructor.
   virtual ~MyTMINLP(){}
 
   
-	/** Copy constructor. (no data = nothing to copy).*/   
-  MyTMINLP(const MyTMINLP &){}
+	/** Copy constructor.*/   
+  MyTMINLP(const MyTMINLP &other):
+printSol_(other.printSol_){}
   /** Assignment operator. no data = nothing to assign*/
   //MyTMINLP& operator=(const MyTMINLP&) {}
 
@@ -46,13 +50,16 @@ public:
      \param n size of var_types (has to be equal to the number of variables in the problem)
   \param var_types types of the variables (has to be filled by function).
   */
-  virtual bool get_var_types(Index n, VariableType* var_types);
+  virtual bool get_variables_types(Index n, VariableType* var_types);
  
+  /** Pass info about linear and nonlinear variables.*/
+  virtual bool get_variables_linearity(Index n, Ipopt::TNLP::LinearityType* var_types);
+
   /** Pass the type of the constraints (LINEAR, NON_LINEAR) to the optimizer.
   \param m size of const_types (has to be equal to the number of constraints in the problem)
   \param const_types types of the constraints (has to be filled by function).
   */
-  virtual bool get_constraints_types(Index m, ConstraintType* const_types);
+  virtual bool get_constraints_linearity(Index m, Ipopt::TNLP::LinearityType* const_types);
 //@}  
     
   /** \name Overloaded functions defining a TNLP.
@@ -155,13 +162,20 @@ public:
 
   
   /** Method called by Ipopt at the end of optimization.*/  
-  virtual void finalize_solution(SolverReturn status,
-                                 Index n, const Number* x, Number obj_value) const;
+  virtual void finalize_solution(TMINLP::SolverReturn status,
+                                 Index n, const Number* x, Number obj_value);
   
   //@}
 
   virtual const SosInfo * sosConstraints() const{return NULL;}
   virtual const BranchingInfo* branchingInfo() const{return NULL;}
+  
+  
+  void printSolutionAtEndOfAlgorithm(){
+    printSol_ = true;}
+  
+private:
+   bool printSol_;
 };
 
 #endif

@@ -4,7 +4,7 @@
 
 ## where to put source files and headers
 URL="http://www.coin-or.org/download/source/Bonmin/"
-latest="Bonmin-0.1.4.tgz"
+latest="Bonmin-0.99.3.tgz"
 DESTINATION=../src/Bonmin
 thirdparty_A=thirdparty_libs_A.gpg
 thirdparty_B=thirdparty_libs_B.gpg
@@ -118,7 +118,18 @@ if [[ $integrate ]] ; then
     if [[ -d $SOURCEDIR ]] ; then
 	rm -rf $SOURCEDIR
     fi
-	
+	## integrate ThirdParty libs
+	MYDIR=`pwd`
+	cd $DESTINATION/ThirdParty/ASL
+	`./get.ASL`
+
+	cd ../Blas
+	`./get.Blas`
+
+	cd ../Lapack
+	`./get.Lapack`
+
+	cd $MYDIR
 fi
 
 
