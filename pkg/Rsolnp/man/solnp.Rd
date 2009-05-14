@@ -66,18 +66,18 @@ A list containing the following values:
 \item{values}{Vector of function values during optimization with last one the
 value at the optimal.}
 \item{lagrange}{The vector of Lagrange multipliers.}
-\item{h}{The Hessian at the optimal solution.}
-\item{xineq0}{The estimated optimal inequality vector of slack variables used for 
+\item{hessian}{The Hessian at the optimal solution.}
+\item{xineq}{The estimated optimal inequality vector of slack variables used for 
 transforming the inequality into an equality constraint.}
-\item{time}{Time taken to compute solution.}
+\item{elapsed}{Time taken to compute solution.}
 }
 \section{Control}{
 \describe{
 \item{RHO}{Penalty parameter (default 1) }
 \item{MAJIT}{Maximum number of major iterations (default 50)}
 \item{MINIT}{Maximum number of minor iterations (default 50)}
-\item{DELTA}{Relative step size in forward difference evaluation (default 1.0e-20)}
-\item{TOL}{Tolerance on feasibility and optimality (default 1e-16)}
+\item{DELTA}{Relative step size in forward difference evaluation (default 1.0e-10)}
+\item{TOL}{Tolerance on feasibility and optimality (default 1e-14)}
 \item{TRACE}{The value of the objective function and the parameters is printed at every
 major iteration (default 0)}
 }}
