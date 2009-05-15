@@ -26,7 +26,7 @@ The main function which takes as first argument the parameter vector and returns
 a single value.
 }
   \item{Efun}{
-(Optional) The equality constraint function returning the vector of evaluate equality 
+(Optional) The equality constraint function returning the vector of evaluated equality 
 constraints.
 }
   \item{EQ}{
