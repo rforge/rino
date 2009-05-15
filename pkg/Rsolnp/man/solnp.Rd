@@ -62,7 +62,7 @@ multiplier method with an SQP interior algorithm.
 \value{
 A list containing the following values:
 \item{par}{Optimal Parameters.}
-\item{convergence }{Indicates whether solver has converged (0) or not (1).}
+\item{convergence }{Indicates whether the solver has converged (0) or not (1).}
 \item{values}{Vector of function values during optimization with last one the
 value at the optimal.}
 \item{lagrange}{The vector of Lagrange multipliers.}
@@ -96,6 +96,7 @@ their problem specification.
 }
 \examples{
 # From the original paper by Y.Ye
+# see the unit tests for more....
 #---------------------------------------------------------------------------------
 # POWEL Problem
 fn1=function(x)
