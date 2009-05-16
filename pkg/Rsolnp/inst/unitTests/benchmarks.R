@@ -14,13 +14,6 @@
 ##   GNU General Public License for more details.
 ##
 #################################################################################
-#rm(list=ls())
-#setwd("C:/users/agh710/documents/eclipse/Rsolnp/R/")
-#source("misc.R")
-#source("subnp.R")
-#source("solnp.R")
-
-
 #---------------------------------------------------------------------------------
 # POWEL Problem
 fn1=function(x)
@@ -158,3 +151,61 @@ pars6=c(5.5,5.5,5.5)
 ctrl=list(TOL=1e-6,DELTA=1e-8)
 boxp<-solnp(pars6, Jfun=fn6, Efun=Kn6, EQ=100, Ifun=NULL, ILB=NULL, IUB=NULL, LB=xLB6,
 		UB=xUB6, control=ctrl)
+		
+
+#---------------------------------------------------------------------------------
+# portfolio optimization problems / benchmarked against SNOPT (SOL) - with tomlab 
+# interface for matlab
+data(dji30ret)
+dj30=as.matrix(dji30ret)
+
+# Rachev Ratio Optimization (Upper to Lower CVaR)
+#----------------------------------------------------------------------------------
+# setup the required sample functions:
+.VaR = function(x, alpha = 0.05)
+{ 
+	x = as.matrix(x)
+	VaR = quantile(x, probs = alpha, type = 1)
+	VaR
+}
+
+.CVaR = function(x, alpha = 0.05)  
+{   
+	x = as.matrix(x)
+	VaR = .VaR(x, alpha)
+	X = as.vector(x[, 1])
+	CVaR = VaR - 0.5 * mean(((VaR-X) + abs(VaR-X))) / alpha
+	CVaR
+}
+
+optRR.jfn<-function(x,ret)
+{
+	retu=ret%*%x
+	obj=-.CVaR(-retu)/.CVaR(retu)
+	return(obj)
+}
+
+# abs(sum) of weights ==1
+optRR.efn<-function(x,ret)
+{
+	sum(abs(x))
+}
+LB=rep(0,30)
+UB=rep(0.1,30)
+pars=rep(1/30,30)
+res.solnp<-solnp(pars,Jfun=optRR.jfn,Efun=optRR.efn,EQ=1,LB=LB,UB=UB,
+		control=list(TRACE=1,RHO=1,MAJIT=100,MINIT=100,DELTA=1e-12,TOL=1e-14),ret=dj30)
+
+res.snopt=list()
+res.snopt$par=c(1.21952805535770e-14,0.0999999999999992,0,0.00167220475981319,0,0,0,0,0.00949911149441067
+		,0,0,0.100000000000000,0,0.0999999999999990,0.0888286837457711,0.0999999999999982,0.100000000000000,0,0,0
+		,0,0,0.100000000000000,0,0,0.0999999999999995,0,0.0999999999999985,0.100000000000000,0)
+res.snopt$value=-1.0032
+res.snopt$elapsed=2.0640000 #seconds
+# about 4x faster than solnp as a result of optimized c++ code in snopt
+# could probably bring this down by using some optimized blas library in R
+
+cbind(round(res.solnp$par,4),round(res.snopt$par,4))
+cbind(round(res.solnp$value[length(res.solnp$value)],4),round(res.snopt$value,4))
+#barplot(round(res.solnp$par,4)-round(res.snopt$par,4),col=rainbow(30))
+#----------------------------------------------------------------------------------

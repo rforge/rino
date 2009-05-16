@@ -11,7 +11,7 @@ minimize		\deqn{f(x)}\cr
 subject to		\deqn{g(x) = 0}\cr
 			\deqn{l_h \le h(x) \le u_h}\cr
 			\deqn{l_x \le x \le u_x}\cr
-where, \eqn{f(x)},\deqn{g(x)} and \deqn{g(x)} are smooth functions.
+where, \eqn{f(x)},\eqn{g(x)} and \eqn{g(x)} are smooth functions.
 }
 \usage{
 solnp(pars, Jfun, Efun = NULL, EQ = NULL, Ifun = NULL, ILB = NULL, IUB = NULL, 
