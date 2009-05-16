@@ -211,10 +211,14 @@ cbind(round(optRR.solnp$par,4),round(optRR.snopt$par,4))
 cbind(round(optRR.solnp$value[length(optRR.solnp$value)],4),round(optRR.snopt$value,4))
 #barplot(round(optRR.solnp$par,4)-round(optRR.solnp$par,4),col=rainbow(30))
 #----------------------------------------------------------------------------------
-# Kappa Optimization (Kaplan and Knowles...subsumes omega measure)
+# Kappa Optimization (Kaplan and Knowles...subsumes omega and sortino measures among others)
+# It is in fact the excess to benchmark return divided by the standardized Lower Partial Moment 
+# measure and as such Kaplan and Knowles are not entirely entitled to claim a special measure 
+# for this as it was described among others by Fishburn in the 70's.
 #----------------------------------------------------------------------------------
 # setup the required sample functions:
-# r is the threshold, n is the power (n=2 is the omega measure of Shadwick and Keating)
+# r is the threshold, n is the power (n=1 + 1 is the omega measure of Shadwick and Keating,
+# while n=2 is the sortino measure.)
 .kappa<-function(port, r, n)
 {
 	z=mean((port< r) * (r-port)^n)
