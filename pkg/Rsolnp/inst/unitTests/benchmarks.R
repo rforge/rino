@@ -239,7 +239,7 @@ LB=rep(0,30)
 UB=rep(0.1,30)
 pars=rep(1/30,30)
 optKappa.solnp<-solnp(pars,Jfun=optKappa.jfn,Efun=optKappa.efn,EQ=1,LB=LB,UB=UB,
-		control=list(TRACE=1,RHO=1,MAJIT=100,MINIT=100,DELTA=1e-12,TOL=1e-14),ret=ret,r=0,n=2)
+		control=list(TRACE=1,RHO=1,MAJIT=100,MINIT=100,DELTA=1e-12,TOL=1e-14),ret=dj30,r=0,n=2)
 
 optKappa.snopt=list()
 optKappa.snopt$par=c(0,0,0,0,0,0,0.100000000000000,0,0,0,0,0.100000000000000,0,0,6.06117471119030e-05,
