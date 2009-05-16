@@ -114,7 +114,7 @@ solnp<-function(pars, Jfun, Efun=NULL, EQ=NULL, Ifun=NULL, ILB=NULL, IUB=NULL, L
 		tempdf=cbind(temp,Jval)
 		if(trace){
 			xtemp=round(as.numeric(temp),4)
-			cat(paste("\nIter: ",iteration," LLH: ",Jval," Pars: ",sep=""),xtemp,"\n")
+			cat(paste("\nIter: ",iteration," fn: ",Jval," Pars: ",sep=""),xtemp,"\n")
 		}
 		if(neq>0) Eval=Efun(temp,...)-EQ else Eval=NULL
 		if(nineq>0) Ival=Ifun(temp,...) else Ival=NULL

@@ -180,8 +180,8 @@ dj30=as.matrix(dji30ret)
 
 optRR.jfn<-function(x,ret)
 {
-	retu=ret%*%x
-	obj=-.CVaR(-retu)/.CVaR(retu)
+	port=ret%*%x
+	obj=-.CVaR(-port)/.CVaR(port)
 	return(obj)
 }
 
@@ -193,19 +193,63 @@ optRR.efn<-function(x,ret)
 LB=rep(0,30)
 UB=rep(0.1,30)
 pars=rep(1/30,30)
-res.solnp<-solnp(pars,Jfun=optRR.jfn,Efun=optRR.efn,EQ=1,LB=LB,UB=UB,
+optRR.solnp<-solnp(pars,Jfun=optRR.jfn,Efun=optRR.efn,EQ=1,LB=LB,UB=UB,
 		control=list(TRACE=1,RHO=1,MAJIT=100,MINIT=100,DELTA=1e-12,TOL=1e-14),ret=dj30)
 
-res.snopt=list()
-res.snopt$par=c(1.21952805535770e-14,0.0999999999999992,0,0.00167220475981319,0,0,0,0,0.00949911149441067
+optRR.snopt=list()
+optRR.snopt$par=c(1.21952805535770e-14,0.0999999999999992,0,0.00167220475981319,0,0,0,0,0.00949911149441067
 		,0,0,0.100000000000000,0,0.0999999999999990,0.0888286837457711,0.0999999999999982,0.100000000000000,0,0,0
 		,0,0,0.100000000000000,0,0,0.0999999999999995,0,0.0999999999999985,0.100000000000000,0)
-res.snopt$value=-1.0032
-res.snopt$elapsed=2.0640000 #seconds
+optRR.snopt$value=-1.0032
+optRR.snopt$elapsed=2.0640000 #seconds
+optKappa.snopt$convergence=10
+optKappa.snopt$convergence$message=c("Current point cannot be improved")
 # about 4x faster than solnp as a result of optimized c++ code in snopt
 # could probably bring this down by using some optimized blas library in R
 
-cbind(round(res.solnp$par,4),round(res.snopt$par,4))
-cbind(round(res.solnp$value[length(res.solnp$value)],4),round(res.snopt$value,4))
-#barplot(round(res.solnp$par,4)-round(res.snopt$par,4),col=rainbow(30))
+cbind(round(optRR.solnp$par,4),round(optRR.snopt$par,4))
+cbind(round(optRR.solnp$value[length(optRR.solnp$value)],4),round(optRR.snopt$value,4))
+#barplot(round(optRR.solnp$par,4)-round(optRR.solnp$par,4),col=rainbow(30))
 #----------------------------------------------------------------------------------
+# Kappa Optimization (Kaplan and Knowles...subsumes omega measure)
+#----------------------------------------------------------------------------------
+# setup the required sample functions:
+# r is the threshold, n is the power (n=2 is the omega measure of Shadwick and Keating)
+.kappa<-function(port, r, n)
+{
+	z=mean((port< r) * (r-port)^n)
+	sg=sign(z)
+	(mean(port) - r) / (sg*abs(z)^(1/n))
+}
+
+
+optKappa.jfn<-function(x,ret,r,n)
+{
+	port=ret%*%x
+	obj=-.kappa(port,r,n)
+	return(obj)
+}
+
+# abs(sum) of weights ==1
+optKappa.efn<-function(x,ret,r,n)
+{
+	sum(abs(x))
+}
+LB=rep(0,30)
+UB=rep(0.1,30)
+pars=rep(1/30,30)
+optKappa.solnp<-solnp(pars,Jfun=optKappa.jfn,Efun=optKappa.efn,EQ=1,LB=LB,UB=UB,
+		control=list(TRACE=1,RHO=1,MAJIT=100,MINIT=100,DELTA=1e-12,TOL=1e-14),ret=ret,r=0,n=2)
+
+optKappa.snopt=list()
+optKappa.snopt$par=c(0,0,0,0,0,0,0.100000000000000,0,0,0,0,0.100000000000000,0,0,6.06117471119030e-05,
+0.100000000000000,0,0,0.0846298883976770,0.100000000000000,0,0,0.100000000000000,0,0.100000000000000,
+0.0178530962613237,0.0974564035933301,0,0.100000000000000,0.100000000000000)
+optKappa.snopt$value=-0.0616092507388217
+optKappa.snopt$elapsed=0.0940000000000012 #seconds
+optKappa.snopt$convergence=0
+optKappa.snopt$convergence$message=c("Optimality conditions satisfied")
+
+cbind(round(optKappa.solnp$par,4),round(optKappa.snopt$par,4))
+cbind(round(optKappa.solnp$value[length(optKappa.solnp$value)],4),round(optKappa.snopt$value,4))
+#barplot(round(optKappa.solnp$par,4)-round(optKappa.snopt$par,4),col=rainbow(30))
