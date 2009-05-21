@@ -11,8 +11,8 @@ method solver.
 \tabular{ll}{
 Package: \tab Rsolnp\cr
 Type: \tab Package\cr
-Version: \tab 0.1\cr
-Date: \tab 2009-05-12\cr
+Version: \tab 0.2\cr
+Date: \tab 2009-05-20\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
 Depends: \tab stats\cr }
@@ -23,7 +23,4 @@ Alexios Ghalanos and Stefan Theussl
 \references{
 Y.Ye,\emph{Interior algorithms for linear, quadratic, and linearly constrained non linear programming},
 PhD Thesis, Department of EES Stanford University, Stanford CA.
-}
-\note{
-The solnp function is a based on a set of matlab routines written by Y.Ye.
 }

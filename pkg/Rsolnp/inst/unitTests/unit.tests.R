@@ -152,7 +152,23 @@ ctrl=list(TOL=1e-6,DELTA=1e-8)
 boxp<-solnp(pars6, Jfun=fn6, Efun=Kn6, EQ=100, Ifun=NULL, ILB=NULL, IUB=NULL, LB=xLB6,
 		UB=xUB6, control=ctrl)
 		
+#---------------------------------------------------------------------------------
+# The Rosen-Suzuki problem
+fn7<-function(x,...){
+	x[1]*x[1]+x[2]*x[2]+2*x[3]*x[3]+x[4]*x[4]-5*x[1]-5*x[2]-21*x[3]+7*x[4]
+}
 
+Jn7=function(x,...){
+	z1=8-x[1]*x[1]-x[2]*x[2]-x[3]*x[3]-x[4]*x[4]-x[1]+x[2]-x[3]+x[4]
+	z2=10-x[1]*x[1]-2*x[2]*x[2]-x[3]*x[3]-2*x[4]*x[4]+x[1]+x[4]
+	z3=5-2*x[1]*x[1]-x[2]*x[2]-x[3]*x[3]-2*x[1]+x[2]+x[4]
+	return(c(z1,z2,z3))
+}
+
+pars7=c(1,1,1,1)
+ctrl=list(TOL=1e-7,DELTA=1e-6)
+rosen.suzuki<-solnp(pars7, Jfun=fn7, Efun=NULL, EQ=NULL, Ifun=Jn7, ILB=rep(0,3), IUB=rep(1000,3), LB=NULL,
+		UB=NULL, control=ctrl)
 #---------------------------------------------------------------------------------
 # portfolio optimization problems / benchmarked against SNOPT (SOL) - with tomlab 
 # interface for matlab
