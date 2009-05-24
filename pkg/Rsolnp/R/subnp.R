@@ -15,7 +15,7 @@
 ##
 #################################################################################
 
-# Based on the original subnp for matlab by Yinyu Ye
+# Based on the original subnp Yinyu Ye
 # http://www.stanford.edu/~yyye/Col.html
 .subnp=function(pars, Jfun, Efun=NULL, EQ=NULL, Ifun=NULL, ILB=NULL, IUB=NULL, LB=NULL,
 		UB=NULL, control, yy, ob, h, l, ...)

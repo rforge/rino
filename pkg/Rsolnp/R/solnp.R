@@ -15,7 +15,7 @@
 ##
 #################################################################################
 
-# Based on the original solnp for matlab by Yinyu Ye
+# Based on the original solnp by Yinyu Ye
 # http://www.stanford.edu/~yyye/Col.html
 
 
