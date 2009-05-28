@@ -9,9 +9,10 @@ The function implements a set of benchmark problems against the MINOS solver of
 Murtagh and Saunders.
 }
 \usage{
-benchmark(id="Powell", print=TRUE)
+benchmark(dat, id = "Powell", print = TRUE)
 }
 \arguments{
+  \item{dat}{the benchmark data to be used.}
   \item{id}{
 The name of the benchmark problem. A call to the function \code{\link{benchmarkids}}
 will return the available benchmark problems.
@@ -42,6 +43,7 @@ Y.Ye (original matlab version of solnp)
 }
 \examples{
 benchmarkids()
-powell=benchmark(id="Powell",print=TRUE)
+dat <- data("benchmarklist")
+powell <- benchmark(get(dat) , id = "Powell", print = TRUE )
 }
 \keyword{optimize}

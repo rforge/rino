@@ -31,7 +31,7 @@ Jn1=function(x){
 
 pars1=c(-2,2,2,-1,-1)
 ctrl=list(TOL=1e-6,DELTA=1e-8)
-powell=solnp(pars1, Jfun=fn1, Efun=Jn1, EQ=c(10,0,-1), control=ctrl))
+powell=solnp(pars1, Jfun=fn1, Efun=Jn1, EQ=c(10,0,-1), control=ctrl)
 #---------------------------------------------------------------------------------
 # WRIGHT4 Problem
 fn2=function(x)
