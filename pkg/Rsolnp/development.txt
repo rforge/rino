@@ -1,0 +1,8 @@
+1. Translation to C using newmat matrix library (in progress)
+2. Creation of evaluation function in C to access environment with functions (done).
+3. Additional SEXP->newmat and newmat->SEXP accessors (done).
+4. newmat->fortran vector (done).
+
+Note on Newmat matrix library : It is possible to use the fortran routines for
+some of the more expensive linear algebra evaluations while retaining this library
+as a utility interface for easy manipulation of matrix and vector objects in C.
