@@ -72,7 +72,7 @@ SEXP solnp(SEXP pars, SEXP Ofn, SEXP Efn, SEXP Ifn, SEXP xeq, SEXP xpb, SEXP xsc
 	// need special operator for columvector division
 	ob=div2cvec(ob,scale.Rows(1, nc + 1));
 
-	ColumnVector p0(np);
+	ColumnVector p0( nineq + np );
 	p0=R2CCV(pars);
 	// need special operator for columvector division
 	p0=div2cvec(p0,scale.Rows(neq + 2, nc + np + 1));
