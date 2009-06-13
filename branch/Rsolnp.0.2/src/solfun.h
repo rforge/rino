@@ -1,14 +1,9 @@
 #ifndef SOLFUN_H
 #define SOLFUN_H
-#include <R.h>
-#include <Rinternals.h>
-#include <Rmath.h>
-#include <R_ext/RS.h>
-#include <R_ext/Lapack.h>
-#include <R_ext/Linpack.h>
-#include <R_ext/Applic.h>
+
 #include <math.h>
 #include <stdbool.h>
+#include <limits.h>
 
 #include <string>
 #include <vector>
@@ -19,6 +14,13 @@ using namespace std;
 using namespace NEWMAT;
 
 extern "C" {
+#include <R.h>
+#include <Rinternals.h>
+#include <Rmath.h>
+#include <R_ext/RS.h>
+#include <R_ext/Lapack.h>
+#include <R_ext/Linpack.h>
+#include <R_ext/Applic.h>
  // R object creation/manipulation functions
   void setdims(SEXP, int, int*);
   int *getdims(SEXP);
@@ -64,7 +66,6 @@ extern "C" {
   ReturnMatrix dotcvecmult(const ColumnVector&, const ColumnVector&);
   ReturnMatrix div2mat(const Matrix&, const Matrix&);
   ReturnMatrix div2cvec(const ColumnVector& , const ColumnVector&);
-  ReturnMatrix makediag(int , double );
   // Matrix Print Function Overloads
   void printMatrix(const Matrix&);
   void printRVector(const RowVector&);
@@ -77,7 +78,15 @@ extern "C" {
   ReturnMatrix rnorms(int);
   ReturnMatrix rnorms_mat(int, int);
   SEXP CV2RV(const ColumnVector&);
-  ReturnMatrix makediag(int , double );
-
+  SEXP C2RD(const double);
+  ReturnMatrix makediag(const int , const double );
+  ReturnMatrix vec2diag(const ColumnVector& );
+  ReturnMatrix mcbind(const Matrix& , const Matrix& );
+  ReturnMatrix mrbind(const Matrix& , const Matrix& );
+  ReturnMatrix row2msort(const Matrix& mat);
+  ReturnMatrix solveqr(const Matrix& , const Matrix& );
+  ReturnMatrix add1vec(const ColumnVector& , const double );
+  double solvecond(const Matrix& );
+  SEXP solnp_chol(SEXP);
 } // end extern "C"
 #endif

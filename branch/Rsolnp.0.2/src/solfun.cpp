@@ -280,7 +280,7 @@ extern "C" {
 	  int i, j, m=mat1.Nrows(), n=mat1.Ncols();
 	  Matrix out(m,n);
 	  out=0.0;
-	  for(i=0; i<m; i++) for(j=0;j<n;j++) out(i+1,j+1)=mat1(i+1,j+1)*mat2(i+1,j+1);
+	  for(i=0; i<m; i++) for(j=0;j<n;j++) out(i+1,j+1)=mat1.SubMatrix(i+1,i+1,j+1,j+1).AsScalar()*mat2.SubMatrix(i+1,i+1,j+1,j+1).AsScalar();
 	  out.Release(); return out.ForReturn();
   }
 
@@ -294,7 +294,7 @@ extern "C" {
 	  }
 	  ColumnVector out(n1);
 	  out=0.0;
-	  for(i=0; i<n1; i++) out.Row(i+1)=vec1.Row(i+1)*vec2.Row(i+1);
+	  for(i=0; i<n1; i++) out.Row(i+1)=vec1.Row(i+1).AsScalar()*vec2.Row(i+1).AsScalar();
 	  out.Release(); return out.ForReturn();
   }
 
@@ -302,13 +302,15 @@ extern "C" {
   {
 	  int i,j, m=mat.Nrows(), n=mat.Ncols();
 	  Matrix out(m,n);
+	  double tmp;
 	  out=0.0;
 	  for(i=0; i<m; i++){
 		  for(j=0;j<n;j++){
-			  if(mat(i+1,j+1)!=0.0){
-				  out(i+1,j+1)=1.0/mat(i+1,j+1);
+			  tmp=mat.SubMatrix(i+1,i+1,j+1,j+1).AsScalar();
+			  if(tmp!=0.0){
+				  out(i+1,j+1)=1.0/tmp;
 			  } else{
-				  out(i+1,j+1)=0;
+				  out(i+1,j+1)=1.0/2.220446e-16;
 			  }
 		  }
 	  }
@@ -329,12 +331,14 @@ extern "C" {
 	  }
 	  Matrix out(m1,n1);
 	  out=0.0;
+	  double tmp;
 	  for(i=0; i<m1; i++){
 		  for(j=0;j<n1;j++){
-			  if(mat2(i+1,j+1)!=0.0){
-				  out(i+1,j+1)=mat1(i+1,j+1)/mat2(i+1,j+1);
+			  tmp = mat2.SubMatrix(i+1,i+1,j+1,j+1).AsScalar();
+			  if(tmp!=0){
+				  out.SubMatrix(i+1,i+1,j+1,j+1)=mat1.SubMatrix(i+1,i+1,j+1,j+1).AsScalar()/mat2.SubMatrix(i+1,i+1,j+1,j+1).AsScalar();
 			  } else{
-				  out(i+1,j+1)=0;
+				  out.SubMatrix(i+1,i+1,j+1,j+1)=1/2.220446e-16;
 			  }
 		  }
 	  }
@@ -354,11 +358,13 @@ extern "C" {
 		  }
 	  ColumnVector out(n1);
 	  out=0.0;
+	  double tmp;
 	  for(i=0; i<n1; i++){
-			  if(vec2.Row(i+1).AsScalar()!=0.0){
+			  tmp = vec2.Row(i+1).AsScalar();
+			  if(tmp!=0.0){
 				  out.Row(i+1)=vec1.Row(i+1).AsScalar()/vec2.Row(i+1).AsScalar();
 			  } else{
-				  out.Row(i+1)=0;
+				  out.Row(i+1)=1/2.220446e-16;
 			  }
 		  }
 	  out.Release();
@@ -415,15 +421,181 @@ extern "C" {
 	int i, nr=vec.Nrows();
 	PROTECT(RV = allocVector(REALSXP, nr));
 	double *r=REAL(RV);
-	for(i=0; i<nr; i++) r[i]=vec(i+1);
+	for(i=0; i<nr; i++) r[i]=vec.Row(i+1).AsScalar();
 	UNPROTECT(1);
 	return RV;
   }
 
-  ReturnMatrix makediag(int m, double d)
+  SEXP C2RD(const double x){
+	  SEXP RV;
+	  PROTECT(RV = allocVector(REALSXP, 1));
+	  double *r=REAL(RV);
+	  r[0]=x;
+	  UNPROTECT(1);
+	  return RV;
+  }
+  ReturnMatrix makediag(const int m, const double d)
   {
     Matrix out(m,m);
-    for(int i=0; i<m; i++) out(m,m)=d;
+    out=0.0;
+    for(int i=0; i<m; i++) out(i+1,i+1)=d;
     out.Release(); return out.ForReturn();
+  }
+
+  ReturnMatrix vec2diag(const ColumnVector& vec)
+  {
+	int m=vec.Nrows();
+    Matrix out(m,m);
+    out=0.0;
+    for(int i=0; i<m; i++) out.SubMatrix(i+1,i+1,i+1,i+1)=vec.Row(i+1).AsScalar();
+    out.Release(); return out.ForReturn();
+  }
+
+  ReturnMatrix mcbind(const Matrix& mat1, const Matrix& mat2)
+  {
+	  int m1 = mat1.Nrows();
+	  int m2 = mat2.Nrows();
+	  int n1 = mat1.Ncols();
+	  int n2 = mat2.Ncols();
+	  if(m1!=m2){
+		  Rprintf("Invalid dims of rows in mcbind routine");
+		  Matrix out;
+		  out.Release(); return out.ForReturn();
+	  	  }
+	  Matrix out(m1, n1+n2);
+	  out.SubMatrix(1,m1,1,n1)=mat1;
+	  out.SubMatrix(1,m1,n1+1,n1+n2)=mat2;
+	  out.Release(); return out.ForReturn();
+  }
+
+  ReturnMatrix mrbind(const Matrix& mat1, const Matrix& mat2)
+  {
+	  int m1 = mat1.Nrows();
+	  int m2 = mat2.Nrows();
+	  int n1 = mat1.Ncols();
+	  int n2 = mat2.Ncols();
+	  if(n1!=n2){
+		  Rprintf("Invalid dims of cols in rcbind routine");
+		  Matrix out;
+		  out.Release(); return out.ForReturn();
+		  }
+	  Matrix out(m1+m2, n1);
+	  out.SubMatrix(1,m1,1,n1)=mat1;
+	  out.SubMatrix(m1+1,m1+m2,1,n1)=mat2;
+	  out.Release(); return out.ForReturn();
+  }
+
+  ReturnMatrix row2msort(const Matrix& mat)
+  {
+	  int m1 = mat.Nrows();
+	  int n1 = mat.Ncols();
+	  double r1, r2;
+	  if(n1!=2){
+		  Rprintf("Invalid dims of cols in row2msort routine");
+		  Matrix out;
+		  out.Release(); return out.ForReturn();
+	  }
+	  Matrix out(m1,n1);
+	  out=mat;
+	  for(int i=1;i<=m1;i++){
+		  r1=mat.SubMatrix(i,i,1,1).AsScalar();
+		  r2=mat.SubMatrix(i,i,2,2).AsScalar();
+		  if(r1>r2){
+			  out.SubMatrix(i,i,1,1)=r2;
+			  out.SubMatrix(i,i,2,2)=r1;
+
+		  }
+	  }
+	  out.Release(); return out.ForReturn();
+  }
+
+  ReturnMatrix solveqr(const Matrix& mat1, const Matrix& mat2)
+  {
+	  //need some additional try/catch for singular matrix
+	  // in qr procedure.
+	  Matrix mm1=mat1;
+	  Matrix mm2=mat2;
+	  UpperTriangularMatrix U;
+	  Matrix M;
+	  try{
+	  QRZ(mm1, U);
+	  QRZ(mm1, mm2, M);
+	  }
+	  catch(Exception){
+		  Rprintf(Exception::what());
+	  }
+	  Matrix out = U.i() * M;
+	  U.Release();
+	  M.Release();
+	  mm1.Release();
+	  mm2.Release();
+	  out.Release();
+	  return out.ForReturn();
+  }
+
+  ReturnMatrix add1vec(const ColumnVector& vec, const double d)
+  {
+	  int m=vec.Nrows();
+	  Matrix out(m+1,1);
+	  out.SubMatrix(1,m,1,1)=vec;
+	  out.SubMatrix(m+1,m+1,1,1)=d;
+	  out.Release();
+	  return out.ForReturn();
+  }
+
+  double solvecond(const Matrix& mat)
+  {
+	  int j;
+	  int m=mat.Nrows();
+	  int n=mat.Ncols();
+	  int l=fmin(m,n);
+	  double x=0.0;
+	  Matrix mat2;
+	  if(m<n){
+		  mat2=mat.t();
+	  } else{
+		  mat2=mat;
+	  }
+	  Matrix U, V; DiagonalMatrix D;
+	  SVD(mat2, D, U, V);
+	  double tmp;
+	  for(j=0;j<l;j++){
+		  tmp=D.SubMatrix(j+1,j+1,j+1,j+1).AsScalar();
+		  if(tmp == 0.0){
+			  x=1/2.220446e-16;
+			  j=l;
+			  }
+	  }
+	  if(x==0.0){
+		  x = D.Maximum()/D.Minimum();
+	  }
+	  D.Release();
+	  U.Release();
+	  V.Release();
+	  mat2.Release();
+	  return x;
+  }
+
+  SEXP solnp_chol(SEXP A)
+  {
+  	SEXP ans = PROTECT((TYPEOF(A) == REALSXP)?duplicate(A):
+  			   coerceVector(A, REALSXP));
+  	SEXP adims = getAttrib(A, R_DimSymbol);
+  	int m = INTEGER(adims)[0];
+  	int n = INTEGER(adims)[1];
+  	int i, j;
+  	for (j = 0; j < n; j++) {	/* zero the lower triangle */
+  	    for (i = j+1; i < n; i++) {
+  		REAL(ans)[i + j * n] = 0.;
+  	    }
+  	}
+  	F77_CALL(dpotrf)("Upper", &m, REAL(ans), &m, &i);
+  	if (i != 0) {
+  	    if (i > 0)
+  		Rprintf("the leading minor of order %d is not positive definite",i);
+  	    Rprintf("argument %d of Lapack routine %s had invalid value",-i, "dpotrf");
+  	}
+  	unprotect(1);
+  	return ans;
   }
 }

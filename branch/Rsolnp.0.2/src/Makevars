@@ -1,2 +1,2 @@
-pkg = rgarch
+pkg = Rsolnp
 PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) 
