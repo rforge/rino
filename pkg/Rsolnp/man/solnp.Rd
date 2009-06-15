@@ -7,11 +7,11 @@ Nonlinear optimization using augmented lagrange method.
 \description{
 The solnp function is based on the solver by Yinyu Ye which solves the general nonlinear
 programming problem:\cr
-minimize		\deqn{f(x)}\cr 
-subject to		\deqn{g(x) = 0}\cr
-			\deqn{l_h \le h(x) \le u_h}\cr
-			\deqn{l_x \le x \le u_x}\cr
-where, \eqn{f(x)},\eqn{g(x)} and \eqn{g(x)} are smooth functions.
+minimize		\eqn{f(x)}\cr 
+subject to		\eqn{g(x) = 0}\cr
+			\eqn{l_h \le h(x) \le u_h}\cr
+			\eqn{l_x \le x \le u_x}\cr
+where, \eqn{f(x)},\eqn{g(x)} and \eqn{h(x)} are smooth functions.
 }
 \usage{
 solnp(pars, Jfun, Efun = NULL, EQ = NULL, Ifun = NULL, ILB = NULL, IUB = NULL, 

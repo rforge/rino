@@ -102,13 +102,17 @@
 }
 
 .checkcontrol<-function(control){
-	if(!is.null(control$RHO) && is.numeric(control$RHO)) RHO=control$RHO else RHO=1
-	if(!is.null(control$MAJIT) && is.numeric(control$MAJIT)) MAJIT=control$MAJIT else MAJIT=10
-	if(!is.null(control$MINIT) && is.numeric(control$MINIT)) MINIT=control$MINIT else MINIT=10
-	if(!is.null(control$DELTA) && is.numeric(control$DELTA)) DELTA=control$DELTA else DELTA=1.0e-10
-	if(!is.null(control$TOL) && is.numeric(control$TOL)) TOL=control$TOL else TOL=1.0e-14
-	if(!is.null(control$TRACE) && (control$TRACE==1 || control$TRACE==0)) TRACE=control$TRACE else TRACE=0
-	ans=list(RHO=RHO, MAJIT=MAJIT, MINIT=MINIT, DELTA=DELTA, TOL=TOL, TRACE=TRACE)
+	# parameters check is now case independent
+	ans = list()
+	params=unlist(control)
+	npar = tolower(names(unlist(control)))
+	names(params) = npar
+	if(any(substr(npar, 1, 3)=="rho")) ans$rho = as.numeric(params["rho"]) else ans$rho=1
+	if(any(substr(npar, 1, 5)=="majit")) ans$majit = as.numeric(params["majit"]) else ans$majit=50
+	if(any(substr(npar, 1, 5)=="minit")) ans$minit = as.numeric(params["minit"]) else ans$minit=50
+	if(any(substr(npar, 1, 5)=="delta")) ans$delta = as.numeric(params["delta"]) else ans$delta=1.0e-8
+	if(any(substr(npar, 1, 3)=="tol")) ans$tol = as.numeric(params["tol"]) else ans$tol=1.0e-6
+	if(any(substr(npar, 1, 5)=="trace")) ans$trace = as.numeric(params["trace"]) else ans$trace=0
 	return(ans)
 }
 
