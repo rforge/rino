@@ -82,7 +82,7 @@ solnp <- function(pars, Jfun, Efun=NULL, EQ=NULL, Ifun=NULL, ILB=NULL, IUB=NULL,
 	pb  = rbind( cbind(ILB, IUB), cbind(LB, UB) ) 
 	
 	# check control list
-	ctrl  = .checkcontrol( control )
+	ctrl  = .solnpctrl( control )
 	rho   = ctrl[[ 1 ]]
 	maxit = ctrl[[ 2 ]]
 	minit = ctrl[[ 3 ]]
