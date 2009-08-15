@@ -100,19 +100,27 @@
 	}
 	return(list(message=message,neq=neq))
 }
-
-.checkcontrol<-function(control){
+.solnpctrl = function(control){
 	# parameters check is now case independent
 	ans = list()
-	params=unlist(control)
-	npar = tolower(names(unlist(control)))
-	names(params) = npar
-	if(any(substr(npar, 1, 3)=="rho")) ans$rho = as.numeric(params["rho"]) else ans$rho=1
-	if(any(substr(npar, 1, 5)=="majit")) ans$majit = as.numeric(params["majit"]) else ans$majit=50
-	if(any(substr(npar, 1, 5)=="minit")) ans$minit = as.numeric(params["minit"]) else ans$minit=50
-	if(any(substr(npar, 1, 5)=="delta")) ans$delta = as.numeric(params["delta"]) else ans$delta=1.0e-8
-	if(any(substr(npar, 1, 3)=="tol")) ans$tol = as.numeric(params["tol"]) else ans$tol=1.0e-6
-	if(any(substr(npar, 1, 5)=="trace")) ans$trace = as.numeric(params["trace"]) else ans$trace=0
+	params = unlist(control)
+	if(is.null(params)) {
+		ans$rho = 1
+		ans$majit = 400
+		ans$minit = 800
+		ans$delta = 1.0e-8
+		ans$tol = 1.0e-12
+		ans$trace = 1
+	} else{
+		npar = tolower(names(unlist(control)))
+		names(params) = npar
+		if(any(substr(npar, 1, 3) == "rho")) ans$rho = as.numeric(params["rho"]) else ans$rho = 1
+		if(any(substr(npar, 1, 5) == "majit")) ans$majit = as.numeric(params["majit"]) else ans$majit = 400
+		if(any(substr(npar, 1, 5) == "minit")) ans$minit = as.numeric(params["minit"]) else ans$minit = 800
+		if(any(substr(npar, 1, 5) == "delta")) ans$delta = as.numeric(params["delta"]) else ans$delta = 1.0e-8
+		if(any(substr(npar, 1, 3) == "tol")) ans$tol = as.numeric(params["tol"]) else ans$tol = 1.0e-12
+		if(any(substr(npar, 1, 5) == "trace")) ans$trace = as.numeric(params["trace"]) else ans$trace = 1
+	}
 	return(ans)
 }
 
