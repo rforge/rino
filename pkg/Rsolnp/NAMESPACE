@@ -1,5 +1,3 @@
-useDynLib("Rsolnp")
-
 export("solnp")
 export("benchmark")
 export("benchmarkids")

@@ -5,14 +5,13 @@
 \title{The Rsolnp package}
 \description{
 The Rsolnp package implements Y.Ye's general nonlinear augmented Lagrange multiplier
-method solver.
-}
+method solver (SQP based solver).}
 \details{
 \tabular{ll}{
 Package: \tab Rsolnp\cr
 Type: \tab Package\cr
-Version: \tab 0.2\cr
-Date: \tab 2009-05-20\cr
+Version: \tab 0.3\cr
+Date: \tab 2009-09-15\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
 Depends: \tab stats\cr }

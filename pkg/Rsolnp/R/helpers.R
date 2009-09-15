@@ -16,15 +16,10 @@
 #################################################################################
 
 
-.eps=.Machine$double.eps
+.eps = .Machine$double.eps
 
-.eqfun=function(Efun, pars, EQ,...)
-{
-	Efun(pars,...)-EQ
-}
-
-.subnpmsg<-function(m){
-	g1=c("SOLNP-->")
+.subnpmsg = function(m){
+	g1=c("solnp-->")
 	m1=paste("\n",g1,"Redundant constraints were found. Poor\n",
 			g1,"intermediate results may result.Suggest that you\n",
 			g1,"remove redundant constraints and re-OPTIMIZE\n",sep="")
@@ -39,66 +34,251 @@
 			m3=m3)
 	cat(ans)
 }
-.checkpars<-function(pars,LB,UB){
-	np=length(pars)
-	message=NULL
-	if((!is.null(LB) && np!=length(LB)) || (!is.null(UB) && np!=length(UB))){
-		message=paste("lower or upper bound length nor equal to parameter length...exiting",sep="")
-	}
-	if(!is.null(LB) && any(pars<LB)) message=rbind(message,paste("starting parameters less than lower bounds",sep=""))
-	if(!is.null(UB) && any(pars>UB)) message=rbind(message,paste("starting parameters greater than lower bounds",sep=""))
-	if(!is.null(LB) && !is.null(UB) && any(LB>UB)){
-		message=rbind(message,paste("lower bounds greater than upper bounds!",sep=""))
-	}
-	if((!is.null(LB) && any(is.na(LB))) || (!is.null(UB) && any(is.na(UB)))){
-		message=rbind(message,paste("NAs in lower or upper bound values",sep=""))
-	}
-	if(any(is.na(pars))) message=rbind(message,paste("NAs in parameter values",sep=""))
-	return(message)
-}
 
-.checkineq<-function(pars, Ifun,ILB,IUB,...){
-	message=NULL
-	nineq=0
-	xineq0=NULL
-	if(!is.function(Ifun)){
-		message=rbind(message,paste("Ifun does not appear to be a function",sep=""))
-	} else{
-		if(!is.null(ILB) && !is.null(IUB) && length(IUB)==length(ILB)){
-			testn=length(Ifun(pars,...))
-			if(testn!=length(IUB)){
-				message=rbind(message,paste("inequality function returns vector of different length
-										than given bounds",sep=""))
-			} else{
-				if(any(ILB>IUB)){
-					message=rbind(message,paste("lower inequality bounds greater than upper inequality bounds!",sep=""))
-				} else{
-					nineq=length(IUB)
-					xineq0=(ILB+IUB)/2
-				}}
-		} else if(!is.null(ILB) && !is.null(IUB) && length(IUB)!=length(ILB)){
-			message=rbind(message,paste("length of upper and lower inequality bounds do not match",sep=""))
-		} else if(is.null(ILB) || is.null(IUB)){
-			message=rbind(message,paste("both upper and lower inequality bounds must be supplied",sep=""))
-		}
-	}
-	return(list(message=message,nineq=nineq,xineq0=xineq0))
-}
 
-.checkeq<-function(pars, Efun, EQ,...)
+
+.checkpars = function(pars, LB, UB, .env)
 {
-	message=NULL
-	neq=0
-	if(!is.null(Efun)){
-		testn=length(Efun(pars,...))
-		if(testn!=length(EQ)){
-			message=rbind(message, paste("equality function returns vector of different 
-									length than given bounds",sep=""))
-		} else{
-			neq=length(EQ)
+	if(is.null(pars))
+		stop("\nsolnp-->error: must supply starting parameters\n", call. = FALSE)
+	if(!is.null(LB)){
+		if(length(pars)!=length(LB))
+			stop("\nsolnp-->error: LB length not equal to parameter length\n", call. = FALSE)
+		if(is.null(UB)) UB = rep(.Machine$double.xmax/2, length(LB))
+	} else{
+		LB = NULL
+	}
+	if(!is.null(UB)){
+		if(length(pars)!=length(UB))
+			stop("\nsolnp-->error: UB length not equal to parameter length\n", call. = FALSE)
+		if(is.null(LB)) LB = rep(-.Machine$double.xmax/2, length(UB))
+	} else{
+		UB = NULL
+	}
+	if(!is.null(UB) && any(LB>UB))
+		stop("\nsolnp-->error: UB must be greater than LB\n", call. = FALSE)
+	
+	if(!is.null(UB) && any(LB==UB))
+		warning("\nsolnp-->warning: Equal Lower/Upper Bounds Found. Consider\n
+						excluding fixed parameters.\n", call. = FALSE)
+	# deal with infinite values as these are not accepted by solve.QP
+	if(!is.null(LB) && !any(is.finite(LB))){
+		idx = which(!is.finite(LB))
+		LB[idx] = sign(LB[idx])*.Machine$double.xmax/2
+	}
+	if(!is.null(UB) && !any(is.finite(UB))){
+		idx = which(!is.finite(UB))
+		UB[idx] = sign(UB[idx])*.Machine$double.xmax/2
+	}	
+	assign(".LB", LB, envir = .env)
+	assign(".UB", UB, envir = .env)
+	return(1)
+}
+
+.checkfun = function(pars, fun, .env, ...)
+{
+	if(!is.function(fun))
+		stop("\nsolnp-->error: fun does not appear to be a function\n", call. = FALSE)
+	val = fun(pars, ...)
+	if(length(val)!=1)
+		stop("\nsolnp-->error: objective function returns value of length greater than 1!\n", call. = FALSE)
+	assign(".solnp_fun", fun, envir = .env)
+	.solnp_nfn <<- .solnp_nfn + 1
+	return(val)
+}
+
+.checkgrad = function(pars, fun, .env, ...)
+{
+	n = length(pars)
+	val = fun(pars, ...)
+	if(length(val)!=n)
+		stop("\nsolnp-->error: gradient vector length must be equal to length(pars)\n", call. = FALSE)
+	assign(".solnp_gradfun", fun, envir = .env)
+	return(val)
+}
+
+.checkhess = function(pars, fun, .env, ...)
+{
+	n = length(pars)
+	val = fun(pars, ...)
+	if(length(as.vector(val))!=(n*n))
+		stop("\nsolnp-->error: hessian must be of length length(pars) x length(pars)\n", call. = FALSE)
+	assign(".solnp_hessfun", fun, envir = .env)
+	return(val)
+}
+
+.checkineq = function(pars, fun, ineqLB, ineqUB, .env, ...)
+{
+	val = fun(pars, ...)
+	n = length(val)
+	if(!is.null(ineqLB)){
+		if(length(ineqLB)!=n)
+			stop("\nsolnp-->error: inequality function returns vector of different length to
+							inequality lower bounds\n", call. = FALSE)
+	} else{
+		stop("\nsolnp-->error: inequality function given without lower bounds\n", call. = FALSE)
+	}
+	if(!is.null(ineqUB)){
+		if(length(ineqUB)!=n)
+			stop("\nsolnp-->error: inequality function returns vector of different length to
+							inequality upper bounds\n", call. = FALSE)
+	} else{
+		stop("\nsolnp-->error: inequality function given without upper bounds\n", call. = FALSE)
+	}
+	if(any(ineqLB>ineqUB))
+		stop("\nsolnp-->error: ineqUB must be greater than ineqLB\n", call. = FALSE)
+	# transform from:
+	# ineqLB =< ineqfun(x) =< ineqUB
+	# to:
+	# ineqfun(x) >= 0
+	assign(".ineqLB", ineqLB, envir = .env)
+	assign(".ineqUB", ineqUB, envir = .env)
+	assign(".solnp_ineqfun", fun, envir = .env)
+	return(val)
+}
+
+
+
+.checkeq = function(pars, fun, eqB, .env, ...)
+{
+	n = length(eqB)
+	val = fun(pars, ...) - eqB
+	if(length(val)!=n)
+		stop("\nsolnp-->error: equality function returns vector of different length
+						to equality value\n", call. = FALSE)
+	.eqB = eqB
+	assign(".eqB", .eqB, envir = .env)
+	.solnp_eqfun = function(x, ...) fun(x, ...) - .eqB
+	assign(".solnp_eqfun", .solnp_eqfun, envir = .env)
+	return(val)
+}
+
+
+# check the jacobian of inequality
+.cheqjacineq = function(pars, fun, .env,  ...)
+{
+	# must be a matrix -> nrows = no.inequalities, ncol = length(pars)
+	val = fun(pars, ...)
+	if(!is.matrix(val))
+		stop("\nsolnp-->error: Jacobian of Inequality must return a matrix type object\n", call. = FALSE)
+	nd = dim(val)
+	if(nd[2]!=length(pars))
+		stop("\nsolnp-->error: Jacobian of Inequality column dimension must be equal to length
+						of parameters\n", call. = FALSE)
+	if(nd[1]!=length(.solnp_ineqUB))
+		stop("\nsolnp-->error: Jacobian of Inequality row dimension must be equal to length
+						of inequality bounds vector\n", call. = FALSE)
+	# as in inequality function, transforms from a 2 sided inequality to a one sided inequality
+	# (for the jacobian).
+	.solnp_ineqjac = function(x, ...) { retval = fun(x, ...); rbind( - retval, retval ) }
+	assign(".solnp_ineqjac", .solnp_ineqjac, envir = .env)
+	return(val)
+}
+
+# check the jacobian of equality
+.cheqjaceq = function(pars, fun, .env, ...)
+{
+	# must be a matrix -> nrows = no.equalities, ncol = length(pars)
+	val = fun(pars, ...)
+	if(!is.matrix(val))
+		stop("\nsolnp-->error: Jacobian of Equality must return a matrix type object\n", call. = FALSE)
+	nd = dim(val)
+	if(nd[2]!=length(pars))
+		stop("\nsolnp-->error: Jacobian of Equality column dimension must be equal to length
+						of parameters\n", call. = FALSE)
+	if(nd[1]!=length(.solnp_eqB))
+		stop("\nsolnp-->error: Jacobian of Equality row dimension must be equal to length
+						of equality bounds vector\n", call. = FALSE)
+	assign(".solnp_eqjac", fun, envir = .env)
+	return(val)
+}
+
+# reporting function
+.report = function(iter, funv, pars)
+{
+	cat( paste( "\nIter: ", iter ," fn: ", format(funv, digits = 4, scientific = 5, nsmall = 4, zero.print = TRUE), "\t Pars: ", sep=""), 
+			format(pars, digits = 4, scientific = 6, nsmall = 5, zero.print = TRUE) )
+}
+
+# finite difference gradient
+.fdgrad = function(pars, fun, ...)
+{
+	if(!is.null(fun)){
+		
+		y0 = fun(pars, ...)
+		nx = length(pars)
+		grd = rep(0, nx)
+		deltax = sqrt(.eps)
+		for(i in 1:nx)
+		{
+			init = pars[i]
+			pars[i]= pars[i] + deltax
+			grd[i] = (fun(pars, ...) - y0) / deltax
+			pars[i] = init
 		}
 	}
-	return(list(message=message,neq=neq))
+	else
+	{
+		grd = 0
+	}
+	return(grd)
+}
+
+# finite difference jacobian
+.fdjac = function(pars, fun, ...)
+{
+	nx = length(pars)
+	if(!is.null(fun))
+	{
+		y0 = fun(pars, ...)
+		nf = length (y0)
+		jac = matrix(0, nrow = nf, ncol= nx)
+		deltax = sqrt (.eps)
+		for(i  in 1:nx)
+		{
+			init = pars[i]
+			pars[i]= pars[i] + deltax
+			jac[,i] = (fun(pars, ...) - y0) / deltax
+			pars[i] = init
+		}
+	} else{
+		jac = rep(0, nx)
+	}
+	return(jac)
+}
+
+.emptygrad = function(pars, ...)
+{
+	matrix(0, nrow = 0, ncol = 1)
+}
+
+.emptyjac = function(pars, ...)
+{
+	matrix(0, nrow = 0, ncol = length(pars))
+}
+
+.emptyfun = function(pars, ...)
+{
+	NULL
+}
+
+.ineqlbfun = function(pars, .env, ...)
+{
+	LB = get(".solnp_LB", envir = .env)
+	UB = get(".solnp_UB", envir = .env)
+	.solnp_ineqfun = get(".solnp_ineqfun", envir = .env)
+	res = c(pars - LB,  UB - pars)
+	if(!is.null(.solnp_ineqfun)) res = c(.solnp_ineqfun(pars, ...), res)
+	res
+}
+
+.ineqlbjac = function(pars, .env, ...)
+{
+	.solnp_ineqjac = get(".solnp_ineqjac", envir = .env)
+	n = length(pars)
+	res = rbind(diag(n), -diag(n))
+	if(!is.null(.solnp_ineqjac)) res = rbind(.solnp_ineqjac(pars, ...), res)
+	res
 }
 
 .solnpctrl = function(control){
@@ -107,45 +287,46 @@
 	params = unlist(control)
 	if(is.null(params)) {
 		ans$rho = 1
-		ans$majit = 400
-		ans$minit = 800
+		ans$outer.iter = 400
+		ans$inner.iter = 800
 		ans$delta = 1.0e-8
-		ans$tol = 1.0e-12
+		ans$tol = 1.0e-6
 		ans$trace = 1
 	} else{
 		npar = tolower(names(unlist(control)))
 		names(params) = npar
 		if(any(substr(npar, 1, 3) == "rho")) ans$rho = as.numeric(params["rho"]) else ans$rho = 1
-		if(any(substr(npar, 1, 5) == "majit")) ans$majit = as.numeric(params["majit"]) else ans$majit = 400
-		if(any(substr(npar, 1, 5) == "minit")) ans$minit = as.numeric(params["minit"]) else ans$minit = 800
+		if(any(substr(npar, 1, 10) == "outer.iter")) ans$outer.iter = as.numeric(params["outer.iter"]) else ans$outer.iter = 400
+		if(any(substr(npar, 1, 10) == "inner.iter")) ans$inner.iter = as.numeric(params["inner.iter"]) else ans$inner.iter = 800
 		if(any(substr(npar, 1, 5) == "delta")) ans$delta = as.numeric(params["delta"]) else ans$delta = 1.0e-8
-		if(any(substr(npar, 1, 3) == "tol")) ans$tol = as.numeric(params["tol"]) else ans$tol = 1.0e-12
+		if(any(substr(npar, 1, 3) == "tol")) ans$tol = as.numeric(params["tol"]) else ans$tol = 1.0e-6
 		if(any(substr(npar, 1, 5) == "trace")) ans$trace = as.numeric(params["trace"]) else ans$trace = 1
 	}
 	return(ans)
 }
 
-.zeros<-function(n=1,m=1)
+.zeros = function( n = 1, m = 1)
 {
-	if(missing(m)) m=n
-	sol<-matrix(0,nrow=n,ncol=m)
+	if(missing(m)) m = n
+	sol = matrix(0, nrow = n, ncol = m)
 	return(sol)
 }
 
-.ones<-function(n=1,m=1)
+.ones = function(n = 1, m = 1)
 {
-	if(missing(m)) m=n
-	sol<-matrix(1,nrow=n,ncol=m)
+	if(missing(m)) m = n
+	sol = matrix(1, nrow = n, ncol = m)
 	return(sol)
 }
 
-.vnorm<-function(x){
+.vnorm = function(x)
+{
 	sum((x)^2)^(1/2)
 }
 
-.solvecond<-function(x)
+.solvecond = function(x)
 {
-	z=svd(x)$d
-	if(any(z==0)) ret=Inf else ret=max(z)/min(z)
+	z = svd(x)$d
+	if(any( z == 0 )) ret = Inf else ret = max( z ) / min( z )
 	return(ret)
 }

@@ -43,122 +43,212 @@
 #           TOL  : tolerance on feasibility and optimality
 # defaults RHO=1, MAJIT=10, MINIT=10, DELTA=1.0e-5, TOL=1.0e-4
 
-solnp <- function(pars, Jfun, Efun=NULL, EQ=NULL, Ifun=NULL, ILB=NULL, IUB=NULL, LB=NULL, UB=NULL, control=list(), ...)
+solnp = function(pars, fun, grad = NULL, eqfun = NULL, eqB = NULL, 
+		eqgrad = NULL, ineqfun = NULL, ineqLB = NULL, ineqUB = NULL, 
+		ineqgrad = NULL, LB = NULL, UB = NULL, control = list(), ...)
 {
 	# start timer
 	tic = Sys.time()
+	# get environment
+	.solnpenv <- environment()
+	.solnp_nfn <<- 0
+	# [1] length of pars
+	# [2] has function gradient?
+	# [3] has hessian?
+	# [4] has ineq?
+	# [5] ineq length
+	# [6] has jacobian (inequality)
+	# [7] has eq?
+	# [8] eq length
+	# [9] has jacobian (equality)
+	# [10] has upper / lower bounds
+	# [11] has either lower/upper bounds or ineq
+	ind = rep(0, 11)
+	np = ind[1]  = length(pars)
+	# lower parameter bounds - indicator
+	# lpb[1]=1 means lower/upper bounds present
+	# lpb[2]=1 means lower/upper bounds OR inequality bounds present
 	
-	np  = length(pars)
+	# do parameter and LB/UB checks
+	check1 = .checkpars(pars, LB, UB, .solnpenv)
+	# .solnp_LB and .solnp_UB assigned
+	if( !is.null(.LB) || !is.null(.UB) ) ind[10] = 1
 	
-	# lower parameter bounds - initialize
-	lpb = c(0, 0)
+	# do function checks and return starting value
+	funv = .checkfun(pars, fun, .solnpenv, ...)
+	#.solnp_fun assigned
 	
-	# do parameter checks
-	check1 = .checkpars(pars, LB, UB)
+	# gradient and hessian checks
+	if(!is.null(grad)){
+		gradv = .checkgrad(pars, grad, .solnpenv, ...)
+		ind[2] = 1
+	} else{
+		.solnp_gradfun = function(pars, ...) .fdgrad(pars, fun = .solnp_fun, ...)
+		ind[2] = 0
+		gradv = .solnp_gradfun(pars, ...)
+	}
+	# .solnp_gradfun(pars, ...) assigned
+
+	.solnp_hessfun = NULL
+	ind[3] = 0
+	#hessv = NULL
+	# .solnp_hessfun(pars, ...) assigned
+
+	# do inequality checks and return starting values
 	
-	if( !is.null(check1) )  return( check1 )
-	
-	if( !is.null(LB) || !is.null(UB) ) lpb[ 1 ] = 1
-	
-	# do inequality checks
-	check2 =.checkineq(pars, Ifun, ILB, IUB, ...)
-	
-	if( !is.null(check2$message) && !is.null(Ifun) ) return( check2$message )
-	
-	# no. inequalities
-	nineq  = check2$nineq
-	xineq0 = check2$xineq0
-	if( lpb[ 1 ] == 1 || nineq > 0) lpb[ 2 ] = 1
-	
-	# check equality
-	check3 = .checkeq(pars, Efun, EQ, ...)
-	
-	if( !is.null(check3$message) ) return( check3$message )
-	
-	# no. on inequalities (neq)
-	neq = check3$neq
-	
+	if(!is.null(ineqfun)){
+		ineqv =.checkineq(pars, ineqfun, ineqLB, ineqUB, .solnpenv, ...)
+		ind[4] = 1
+		nineq = length(ineqLB)
+		ind[5] = nineq
+		ineqx0 = (.ineqLB + .ineqUB)/2
+		if(!is.null(ineqgrad)){
+			ineqjacv = .cheqjacineq(pars, gradineq, .ineqUB, .ineqLB, .solnpenv, ...)
+			ind[6] = 1
+		} else{
+			.solnp_ineqjac = function(pars, ...) .fdjac(pars, fun = .solnp_ineqfun, ...)
+			ind[6] = 0
+			ineqjacv = .solnp_ineqjac(pars, ...)
+		}
+	} else{
+		.solnp_ineqfun = function(pars, ...) .emptyfun(pars, ...)
+		.solnp_ineqjac = function(pars, ...) .emptyjac(pars, ...)
+		ineqv = NULL
+		ind[4] = 0
+		nineq = 0
+		ind[5] = 0
+		ind[6] = 0
+		ineqx0 = NULL
+		.ineqLB = NULL
+		.ineqUB = NULL
+	}
+	# .solnp_ineqfun and .solnp_ineqjac assigned
+	# .solnp_ineqLB and .solnp_ineqUB assigned
+
+	# equality checks
+	if(!is.null(eqfun)){
+		eqv = .checkeq(pars, eqfun, eqB, .solnpenv, ...)
+		ind[7] = 1
+		neq = length(.eqB)
+		ind[8] = neq
+		if(!is.null(eqgrad)){
+			eqjacv = .cheqjaceq(pars, gradeq, .solnpenv, ...)
+			ind[9] = 1
+		} else{
+			.solnp_eqjac = function(pars, ...) .fdjac(pars, fun = .solnp_eqfun, ...)
+			eqjacv = .solnp_eqjac(pars, ...)
+			ind[9] = 0
+		}
+	} else {
+		eqv = NULL
+		eqjacv = NULL
+		.solnp_eqfun = function(pars, ...) .emptyfun(pars, ...)
+		.solnp_eqjac = function(pars, ...) .emptyjac(pars, ...)
+		ind[7] = 0
+		neq = 0
+		ind[8] = 0
+		ind[9] = 0
+	}
+	# .solnp_eqfun(pars, ...) and .solnp_eqjac(pars, ...) assigned
+	# .solnp_eqB assigned
+
+	if( ind[ 10 ] || ind [ 4 ]) ind[ 11 ] = 1
+		
 	# parameter bounds (pb)
-	pb  = rbind( cbind(ILB, IUB), cbind(LB, UB) ) 
+	pb  = rbind( cbind(.ineqLB, .ineqUB), cbind(.LB, .UB) )
 	
 	# check control list
 	ctrl  = .solnpctrl( control )
 	rho   = ctrl[[ 1 ]]
+	# maxit = outer iterations
 	maxit = ctrl[[ 2 ]]
+	# minit = inner iterations
 	minit = ctrl[[ 3 ]]
 	delta = ctrl[[ 4 ]]
 	tol   = ctrl[[ 5 ]]
 	trace = ctrl[[ 6 ]]
 	
-	# total constraints (tc)
+	# total constraints (tc) = no.inequality constraints + no.equality constraints
 	tc = nineq + neq
 	
 	# initialize fn value and inequalities and set to NULL those not needed
-	startf = Jfun(pars, ...)
-	
-	if( nineq>0 ) starti = Ifun(pars,...) else starti = NULL
-	
-	if( neq>0 ) starte = Efun(pars,...) - EQ else starte = NULL
-	
-	j  = startf
-	jh = startf
+	j  = jh = funv
 	tt = 0 * .ones(3, 1)
 	
-	if( tc>0 ) {
-		# lagrange multipliers (l)
-		l = 0 * .ones(tc, 1)
-		# constraint = [1:neq 1:nineq]
-		constraint = c(starte, starti)
-		
-		if( nineq>0 ) {
-			tmpv = cbind(constraint[ (neq + 1):tc ] - ILB, IUB - constraint[ (neq + 1):tc ] )
+	if( tc > 0 ) {
+		# lagrange multipliers (lambda)
+		lambda = 0 * .ones(tc, 1)
+		# constraint vector = [1:neq 1:nineq]
+		constraint = c(eqv, ineqv)
+		if( ind[4] ) {
+			tmpv = cbind(constraint[ (neq + 1):tc ] - .ineqLB, .ineqUB - constraint[ (neq + 1):tc ] )
 			testmin = apply( tmpv, 1, FUN = function( x ) min(x[ 1 ], x[ 2 ]) )
-			if( all(testmin > 0) ) xineq0 = constraint[ (neq + 1):tc ]
-			constraint[ (neq + 1):tc ] = constraint[ (neq + 1):tc ] - xineq0
+			if( all(testmin > 0) ) ineqx0 = constraint[ (neq + 1):tc ]
+			constraint[ (neq + 1):tc ] = constraint[ (neq + 1):tc ] - ineqx0
 		}
-		
 		tt[ 2 ] = .vnorm(constraint)
 		if( max(tt[ 2 ] - 10 * tol, nineq) <= 0 ) rho = 0
 	} else{
-		l = 0
+		lambda = 0
 	}
-	
-	p  = c(xineq0, pars)
-	h  = diag(np+nineq)
+	# starting augmented parameter vector
+	p  = c(ineqx0, pars)
+	hessv  = diag(np + nineq)
 	mu = np
-	iteration = 0
-	ob = c(startf, starte, starti)
+	.solnp_iter = 0
+	ob = c(funv, eqv, ineqv)
 	
-	while( iteration < maxit ){
-		iteration = iteration + 1
-		ctrlv = c(rho, minit, delta, tol, neq, nineq, np, lpb)
-		res   = .subnp(p, Jfun, Efun, EQ, Ifun, ILB, IUB, LB, UB, control = ctrlv, 
-				yy = l, ob = ob,h = h,l = mu, ...)
-		p  = res$p
-		l  = res$y
-		h  = res$h
-		mu = res$l
-		temp = p[ (nineq + 1):(nineq + np) ]
-		Jval = Jfun(temp, ...)
-		tempdf = cbind(temp, Jval)
+	while( .solnp_iter < maxit ){
+		.solnp_iter = .solnp_iter + 1
+		.subnp_ctrl = c(rho, minit, delta, tol)
 		
-		if( trace ){
-			xtemp = round(as.numeric(temp), 4)
-			cat( paste( "\nIter: ", iteration, " fn: ", Jval, " Pars: ", sep="" ), xtemp, "\n" )
+		# make the scale for the cost, the equality constraints, the inequality
+		# constraints, and the parameters
+		if( ind[7] ) {
+			# [1 neq]
+			vscale = c( ob[ 1 ], rep(1, neq) * max( abs(ob[ 2:(neq + 1) ]) ) )
+		} else {
+			vscale = 1
 		}
 		
-		if( neq>0 ) Eval = Efun(temp, ...)-EQ else Eval = NULL
+		if( !ind[ 11 ] ) {
+			vscale = c(vscale, p)
+		} else {
+			# [ 1 neq np]
+			vscale = c(vscale, rep( 1, length = length(p) ) )
+		}
 		
-		if( nineq>0 ) Ival = Ifun(temp, ...) else Ival = NULL
+		vscale = apply( matrix(vscale, ncol = 1), 1, FUN = function( x ) min( max( abs(x), tol ), 1/tol ) )
 		
-		ob = c(Jval, Eval, Ival)
+		res   = .subnp(pars = p, yy = lambda, ob = ob, hessv = hessv, lambda = mu, vscale = vscale, 
+				ctrl = .subnp_ctrl, .env = .solnpenv, ...)
+		
+		p  = res$p
+		lambda  = res$y
+		hessv  = res$hessv
+		mu = res$lambda
+		temp = p[ (nineq + 1):(nineq + np) ]
+		funv = .solnp_fun(temp, ...)
+		.solnp_nfn <<- .solnp_nfn + 1
+		
+		tempdf = cbind(temp, funv)
+		
+		if( trace ){
+			.report(.solnp_iter, funv, temp)
+		}
+		
+		eqv = .solnp_eqfun(temp, ...)		
+		ineqv = .solnp_ineqfun(temp, ...)
+		
+		ob = c(funv, eqv, ineqv)
+		
 		tt[ 1 ] = (j - ob[ 1 ]) / max(abs(ob[ 1 ]), 1)
-		j=ob[ 1 ]
+		j = ob[ 1 ]
 		
-		if( tc > 0.5 ){
+		if( tc > 0 ){
 			constraint = ob[ 2:(tc + 1) ]
 			
-			if( nineq > 0.5 ){
+			if( ind[ 4 ] ){
 				tempv = rbind( constraint[ (neq + 1):tc ] - pb[ 1:nineq, 1 ],
 				              pb[ 1:nineq, 2 ] - constraint[ (neq + 1):tc ] )
 				              
@@ -177,7 +267,7 @@ solnp <- function(pars, Jfun, Efun=NULL, EQ=NULL, Ifun=NULL, ILB=NULL, IUB=NULL,
 			}
 			
 			if( tt[ 3 ] < 5 * tt[ 2 ]) {
-				rho=rho/5
+				rho = rho/5
 			}
 			
 			if( tt[ 3 ] > 10 * tt[ 2 ]) {
@@ -185,36 +275,38 @@ solnp <- function(pars, Jfun, Efun=NULL, EQ=NULL, Ifun=NULL, ILB=NULL, IUB=NULL,
 			}
 			
 			if( max( c( tol + tt[ 1 ], tt[ 2 ] - tt[ 3 ] ) ) <= 0 ) { 
-				l = 0 * l
-				h = diag( diag ( h ) )
+				lambda = 0
+				hessv = diag( diag ( hessv ) )
 			}
 
 			tt[ 2 ] = tt[ 3 ]
 		}
 		
 		if( .vnorm( c(tt[ 1 ], tt[ 2 ]) ) <= tol ) {
-			maxit = iteration
+			maxit = .solnp_iter
 		}
 		
 		jh = c(jh, j)
 	}
 	
-	if( nineq > 0.5 ) {
-		xineq0 = p[ 1:nineq ]
+	if( ind[ 4 ] ) {
+		ineqx0 = p[ 1:nineq ]
 	}
 	
 	p = p[ (nineq + 1):(nineq + np) ]
 	
 	if( .vnorm( c(tt[ 1 ], tt[ 2 ]) ) <= tol ) {
 		convergence = 0
-		cat( paste( "\nSOLNP--> Completed in ", iteration, " iterations\n", sep="" ) )
+		cat( paste( "\nsolnp--> Completed in ", .solnp_iter, " iterations\n", sep="" ) )
 	} else{
 		convergence = 1
-		cat( paste( "\nSOLNP--> Exiting after maximum number of iterations\n",
+		cat( paste( "\nsolnp--> Exiting after maximum number of iterations\n",
 						"Tolerance not achieved\n", sep="" ) )
 	}
 	# end timer
 	toc = Sys.time() - tic
-	ans = list(par = p, convergence = convergence, values = jh, lagrange = l, hessian = h, xine = xineq0, elapsed = toc)
-	return( ans ) 
+	ans = list(pars = p, convergence = convergence, values = jh, lagrange = lambda, 
+			hessian = hessv, ineqx0 = ineqx0, nfuneval = .solnp_nfn, outer.iter = .solnp_iter, 
+			elapsed = toc)
+	return( ans )
 }
