@@ -408,8 +408,8 @@ from Problem 43 of Hock and Schittkowski (1981).")
 	pars=rep(1/30,30)
 	
 	.x0 = rep(1/30,30)
-	control = list(delta = 1e-10, tol = 1e-8, trace = 0)
-	ans = solnp(.x0, fun = .fn1, eqfun = .eqn1, eqB = 1, LB = LB, UB = UB, control=ctrl, ret=dj30)
+	ctrl = list(delta = 1e-10, tol = 1e-8, trace = 0)
+	ans = solnp(.x0, fun = .fn1, eqfun = .eqn1, eqB = 1, LB = LB, UB = UB, control = ctrl, ret = dj30)
 	snopt = list()
 	snopt$fn = -1.002162
 	snopt$pars = c(0, 0.08128943, 0, 0, 0, 0.01997529, 0, 0, 0.04208868, 0, 0, 0.1, 0.04206685,
