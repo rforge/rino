@@ -7,7 +7,7 @@
 ##   it under the terms of the GNU General Public License as published by
 ##   the Free Software Foundation, either version 3 of the License, or
 ##   (at your option) any later version.
-##z
+##
 ##   The R package Rsolnp is distributed in the hope that it will be useful,
 ##   but WITHOUT ANY WARRANTY; without even the implied warranty of
 ##   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
@@ -26,16 +26,17 @@
 	ineqUB = get(".ineqUB", envir = .env)
 	LB = get(".LB", envir = .env)
 	UB = get(".UB", envir = .env)
-	.solnp_gradfun = get(".solnp_gradfun", envir = .env)
-	.solnp_eqjac = get(".solnp_eqjac", envir = .env)
-	.solnp_ineqjac = get(".solnp_ineqjac", envir = .env)
+	#.solnp_gradfun = get(".solnp_gradfun", envir = .env)
+	#.solnp_eqjac = get(".solnp_eqjac", envir = .env)
+	#.solnp_ineqjac = get(".solnp_ineqjac", envir = .env)
 	ind = get("ind", envir = .env)
+	
 	# pars [nineq + np]	
 	rho   = ctrl[ 1 ]
 	maxit = ctrl[ 2 ]
 	delta = ctrl[ 3 ]
 	tol   = ctrl[ 4 ]
-	
+	trace = ctrl[ 5 ]
 	# [1] length of pars
 	# [2] has function gradient?
 	# [3] has hessian?
@@ -69,6 +70,7 @@
 	# and the parameter bounds if there are any
 	# Also make sure the parameters are no larger than (1-tol) times their bounds
 	# ob [ 1 neq nineq]
+	
 	ob = ob / vscale[ 1:(nc + 1) ]
 	# p0 [np]
 	p0 = p0 / vscale[ (neq + 2):(nc + np + 1) ]
@@ -125,14 +127,16 @@
 		# [ nc ]
 		constraint = ob[ 2:(nc + 1) ]
 		# constraint [5 0 11 3x1]
+		# gradient routine
 		for( i in 1:np ) {
 			# scale the parameters (non ineq)
 			p0[ nineq + i ] = p0[ nineq + i ] + delta
 			tmpv = p0[ (nineq + 1):npic ] * vscale[ (nc + 2):(nc + np + 1) ]
-			funv = .solnp_fun(tmpv, ...)
-			eqv = .solnp_eqfun(tmpv, ...)
-			ineqv = .solnp_ineqfun(tmpv, ...)
-			.solnp_nfn <<- .solnp_nfn + 1
+			funv 	= .safefun(tmpv, .solnp_fun, ...)
+			eqv 	= .solnp_eqfun(tmpv, ...)
+			ineqv 	= .solnp_ineqfun(tmpv, ...)
+			ctmp = get(".solnp_nfn", envir =  .env)
+			assign(".solnp_nfn", ctmp + 1, envir = .env)
 
 			ob = c(funv, eqv, ineqv) / vscale[ 1:(nc + 1) ]
 			g[ nineq + i ]   = (ob[ 1 ] - j) / delta
@@ -242,10 +246,11 @@
 	if( ch > 0 ) {
 		
 		tmpv = p[ (nineq + 1):npic ] * vscale[ (nc + 2):(nc + np + 1) ]
-		funv = .solnp_fun(tmpv, ...)
+		funv = .safefun(tmpv, .solnp_fun, ...)
 		eqv = .solnp_eqfun(tmpv, ...)
 		ineqv = .solnp_ineqfun(tmpv, ...)
-		.solnp_nfn <<- .solnp_nfn + 1
+		ctmp = get(".solnp_nfn", envir =  .env)
+		assign(".solnp_nfn", ctmp + 1, envir = .env)
 		ob = c(funv, eqv, ineqv) / vscale[ 1:(nc + 1) ]
 	}
 	
@@ -271,10 +276,11 @@
 				
 				p[ nineq + i ] = p[ nineq + i ] + delta
 				tmpv = p[ (nineq + 1):npic ] * vscale[ (nc + 2):(nc + np + 1) ]
-				funv = .solnp_fun(tmpv, ...)
-				eqv = .solnp_eqfun(tmpv, ...)
-				ineqv = .solnp_ineqfun(tmpv, ...)
-				.solnp_nfn <<- .solnp_nfn + 1
+				funv 	= .safefun(tmpv, .solnp_fun, ...)
+				eqv 	= .solnp_eqfun(tmpv, ...)
+				ineqv 	= .solnp_ineqfun(tmpv, ...)
+				ctmp = get(".solnp_nfn", envir =  .env)
+				assign(".solnp_nfn", ctmp + 1, envir = .env)
 				obm = c(funv, eqv, ineqv) / vscale[ 1:(nc + 1) ]
 				
 				if( ind[4] ) {
@@ -322,7 +328,7 @@
 			}
 			
 		}
-		# sunday until here
+
 		go = -1
 		lambda = lambda / 10
 		while( go <= 0 ) {
@@ -356,10 +362,11 @@
 		alp[ 3 ] = 1.0
 		ptt = cbind(ptt, p0)
 		tmpv = ptt[ (nineq + 1):npic, 3 ] * vscale[ (nc + 2):(nc + np + 1) ]
-		funv = .solnp_fun(tmpv, ...)
-		eqv = .solnp_eqfun(tmpv, ...)
-		ineqv = .solnp_ineqfun(tmpv, ...)
-		.solnp_nfn <<- .solnp_nfn + 1
+		funv 	= .safefun(tmpv, .solnp_fun, ...)
+		eqv 	= .solnp_eqfun(tmpv, ...)
+		ineqv 	= .solnp_ineqfun(tmpv, ...)
+		ctmp = get(".solnp_nfn", envir =  .env)
+		assign(".solnp_nfn", ctmp + 1, envir = .env)
 		
 		ob3 = c(funv, eqv, ineqv) / vscale[ 1:(nc + 1) ]
 		sob[ 3 ] = ob3[ 1 ]
@@ -378,10 +385,11 @@
 			alp[ 2 ] = (alp[ 1 ] + alp[ 3 ]) / 2
 			ptt[ , 2 ] = (1 - alp[ 2 ]) * p + alp[ 2 ] * p0
 			tmpv = ptt[ (nineq + 1):npic, 2 ] * vscale[ (nc + 2):(nc + np + 1) ]
-			funv = .solnp_fun(tmpv, ...)
-			eqv = .solnp_eqfun(tmpv, ...)
-			ineqv = .solnp_ineqfun(tmpv, ...)
-			.solnp_nfn <<- .solnp_nfn + 1
+			funv 	= .safefun(tmpv, .solnp_fun, ...)
+			eqv 	= .solnp_eqfun(tmpv, ...)
+			ineqv 	= .solnp_ineqfun(tmpv, ...)
+			ctmp = get(".solnp_nfn", envir =  .env)
+			assign(".solnp_nfn", ctmp + 1, envir = .env)
 			
 			ob2 = c(funv, eqv, ineqv) / vscale[ 1:(nc + 1) ]
 			
@@ -402,7 +410,7 @@
 				obn = min(sob)
 				go = tol * (obm - obn) / (j - obm)
 			}
-			# monday
+
 			condif1 = sob[ 2 ] >= sob[ 1 ]
 			condif2 = sob[ 1 ] <= sob[ 3 ] && sob[ 2 ] < sob[ 1 ]
 			condif3 = sob[ 2 ] <  sob[ 1 ] && sob[ 1 ] > sob[ 3 ]
@@ -483,7 +491,7 @@
 	if( reduce > tol ) {
 		.subnpmsg( "m3" )
 	}
-	# tuesday
+
 	ans = list(p = p, y = y, hessv = hessv, lambda = lambda)
 	return( ans )
 }

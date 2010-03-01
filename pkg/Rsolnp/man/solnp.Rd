@@ -1,5 +1,4 @@
 \name{solnp}
-\Rdversion{1.1}
 \alias{solnp}
 \title{
 Nonlinear optimization using augmented lagrange method.
@@ -7,15 +6,16 @@ Nonlinear optimization using augmented lagrange method.
 \description{
 The solnp function is based on the solver by Yinyu Ye which solves the general nonlinear
 programming problem:\cr
-minimize		\eqn{f(x)}\cr 
-subject to		\eqn{g(x) = 0}\cr
-			\eqn{l_h \le h(x) \le u_h}\cr
-			\eqn{l_x \le x \le u_x}\cr
-where, \eqn{f(x)},\eqn{g(x)} and \eqn{g(x)} are smooth functions.
+\deqn{\min  f(x)}{min  f(x)}
+\deqn{\mathrm{s.t.}}{s.t.}
+\deqn{g(x) = 0}{g(x) = 0}
+\deqn{l_h \leq h(x) \leq u_h}{l[h] <= h(x) <= u[h]}
+\deqn{l_x \leq x \leq u_x}{l[x] <= x <= u[x]}
+where, \eqn{f(x)}, \eqn{g(x)} and \eqn{h(x)} are smooth functions.
 }
 \usage{
-solnp(pars, fun, grad = NULL, eqfun = NULL, eqB = NULL, eqgrad =NULL, ineqfun = NULL, 
-ineqLB = NULL, ineqUB = NULL, ineqgrad = NULL, LB = NULL, UB = NULL, control = list(), ...)
+solnp(pars, fun, eqfun = NULL, eqB = NULL, ineqfun = NULL, ineqLB = NULL, ineqUB = NULL, 
+LB = NULL, UB = NULL, control = list(), ...)
 }
 \arguments{
   \item{pars}{
@@ -25,21 +25,13 @@ The starting parameter vector.
 The main function which takes as first argument the parameter vector and returns
 a single value.
 }
-  \item{grad}{
-The gradient of the main function which takes as first argument the parameter vector 
-and returns a vector of same length as parameters (not currently implemented).
-}
+
   \item{eqfun}{
 (Optional) The equality constraint function returning the vector of evaluated equality 
 constraints.
 }
   \item{eqB}{
-(Optioal) The equality constraints.
-}
-  \item{eqgrad}{
-(Optioal) The equality constraints grdient function returning a matrix with columns
-of length equal to number of parameters and rows of length equal to number of 
-equality constraints (not currently implemented).
+(Optional) The equality constraints.
 }
   \item{ineqfun}{
 (Optional) The inequality constraint function returning the vector of evaluated inequality 
@@ -50,11 +42,6 @@ constraints.
 }
   \item{ineqUB}{
 (Optional) The upper bound of the inequality constraints.
-}
-  \item{ineqgrad}{
-(Optioal) The inequality constraints grdient function returning a matrix with columns
-of length equal to number of parameters and rows of length equal to number of 
-inequality constraints (not currently implemented).
 }
   \item{LB}{
 (Optional) The lower bound on the parameters.
@@ -97,7 +84,7 @@ transforming the inequality into an equality constraint.}
 major iteration (default 0)}
 }}
 \references{
-Y.Ye,\emph{Interior algorithms for linear, quadratic, and linearly constrained non 
+Y.Ye, \emph{Interior algorithms for linear, quadratic, and linearly constrained non 
 linear programming}, PhD Thesis, Department of EES Stanford University, Stanford CA.
 }
 \author{

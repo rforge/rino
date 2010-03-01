@@ -10,16 +10,17 @@ method solver (SQP based solver).}
 \tabular{ll}{
 Package: \tab Rsolnp\cr
 Type: \tab Package\cr
-Version: \tab 0.3\cr
-Date: \tab 2009-09-15\cr
+Version: \tab 1\cr
+Date: \tab 2010-03-01\cr
 License: \tab GPL\cr
 LazyLoad: \tab yes\cr
-Depends: \tab stats\cr }
+Depends: \tab stats, truncnorm\cr 
+Suggests: \tab multicore\cr}
 }
 \author{
 Alexios Ghalanos and Stefan Theussl
 }
 \references{
-Y.Ye,\emph{Interior algorithms for linear, quadratic, and linearly constrained non linear programming},
+Y.Ye, \emph{Interior algorithms for linear, quadratic, and linearly constrained non linear programming},
 PhD Thesis, Department of EES Stanford University, Stanford CA.
 }

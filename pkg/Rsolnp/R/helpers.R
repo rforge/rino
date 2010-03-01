@@ -19,19 +19,19 @@
 .eps = .Machine$double.eps
 
 .subnpmsg = function(m){
-	g1=c("solnp-->")
-	m1=paste("\n",g1,"Redundant constraints were found. Poor\n",
-			g1,"intermediate results may result.Suggest that you\n",
-			g1,"remove redundant constraints and re-OPTIMIZE\n",sep="")
-	m2=paste("\n",g1,"The linearized problem has no feasible\n",
-			g1,"solution.  The problem may not be feasible.\n",sep="")
-	m3=paste("\n",g1,"Minor optimization routine did not converge in the \n",
-			g1,"specified number of minor iterations.  You may need\n",
-			g1,"to increase the number of minor iterations.        \n",sep="")
-	ans=switch(m,
-			m1=m1,
-			m2=m2,
-			m3=m3)
+	g1 = c("solnp-->")
+	m1 = paste("\n",g1, "Redundant constraints were found. Poor\n",
+			g1, "intermediate results may result.Suggest that you\n",
+			g1, "remove redundant constraints and re-OPTIMIZE\n", sep = "")
+	m2 = paste("\n",g1, "The linearized problem has no feasible\n",
+			g1, "solution.  The problem may not be feasible.\n", sep = "")
+	m3 = paste("\n",g1, "Minor optimization routine did not converge in the \n",
+			g1, "specified number of minor iterations.  You may need\n",
+			g1, "to increase the number of minor iterations.        \n", sep = "")
+	ans = switch(m,
+			m1 = m1,
+			m2 = m2,
+			m3 = m3)
 	cat(ans)
 }
 
@@ -42,23 +42,23 @@
 	if(is.null(pars))
 		stop("\nsolnp-->error: must supply starting parameters\n", call. = FALSE)
 	if(!is.null(LB)){
-		if(length(pars)!=length(LB))
+		if(length(pars) != length(LB))
 			stop("\nsolnp-->error: LB length not equal to parameter length\n", call. = FALSE)
 		if(is.null(UB)) UB = rep(.Machine$double.xmax/2, length(LB))
 	} else{
 		LB = NULL
 	}
 	if(!is.null(UB)){
-		if(length(pars)!=length(UB))
+		if(length(pars) != length(UB))
 			stop("\nsolnp-->error: UB length not equal to parameter length\n", call. = FALSE)
 		if(is.null(LB)) LB = rep(-.Machine$double.xmax/2, length(UB))
 	} else{
 		UB = NULL
 	}
-	if(!is.null(UB) && any(LB>UB))
+	if(!is.null(UB) && any(LB > UB))
 		stop("\nsolnp-->error: UB must be greater than LB\n", call. = FALSE)
 	
-	if(!is.null(UB) && any(LB==UB))
+	if(!is.null(UB) && any(LB == UB))
 		warning("\nsolnp-->warning: Equal Lower/Upper Bounds Found. Consider\n
 						excluding fixed parameters.\n", call. = FALSE)
 	# deal with infinite values as these are not accepted by solve.QP
@@ -77,14 +77,25 @@
 
 .checkfun = function(pars, fun, .env, ...)
 {
-	if(!is.function(fun))
-		stop("\nsolnp-->error: fun does not appear to be a function\n", call. = FALSE)
+	if(!is.function(fun)) stop("\nsolnp-->error: fun does not appear to be a function\n", call. = FALSE)
 	val = fun(pars, ...)
-	if(length(val)!=1)
-		stop("\nsolnp-->error: objective function returns value of length greater than 1!\n", call. = FALSE)
+	if(length(val) != 1)  stop("\nsolnp-->error: objective function returns value of length greater than 1!\n", call. = FALSE)
+	
 	assign(".solnp_fun", fun, envir = .env)
-	.solnp_nfn <<- .solnp_nfn + 1
+	ctmp = get(".solnp_nfn", envir =  .env)
+	assign(".solnp_nfn", ctmp + 1, envir = .env)
 	return(val)
+}
+
+# Might eventually use this, but really the user must take care of such problems
+# in their own function/setup
+.safefun = function(pars, fun, ...){
+	v  = fun(pars, ...)
+	if(is.na(v) | !is.finite(v) | is.nan(v)) {
+	warning(paste("\nsolnp-->warning: ", v , " detected in function call...check your function\n", sep = ""), immediate. = TRUE)
+	v = 1e10
+	}
+	v
 }
 
 .checkgrad = function(pars, fun, .env, ...)
@@ -101,7 +112,7 @@
 {
 	n = length(pars)
 	val = fun(pars, ...)
-	if(length(as.vector(val))!=(n*n))
+	if(length(as.vector(val)) != (n*n))
 		stop("\nsolnp-->error: hessian must be of length length(pars) x length(pars)\n", call. = FALSE)
 	assign(".solnp_hessfun", fun, envir = .env)
 	return(val)
@@ -112,31 +123,27 @@
 	val = fun(pars, ...)
 	n = length(val)
 	if(!is.null(ineqLB)){
-		if(length(ineqLB)!=n)
+		if(length(ineqLB) != n)
 			stop("\nsolnp-->error: inequality function returns vector of different length to
 							inequality lower bounds\n", call. = FALSE)
 	} else{
 		stop("\nsolnp-->error: inequality function given without lower bounds\n", call. = FALSE)
 	}
 	if(!is.null(ineqUB)){
-		if(length(ineqUB)!=n)
+		if(length(ineqUB) != n)
 			stop("\nsolnp-->error: inequality function returns vector of different length to
 							inequality upper bounds\n", call. = FALSE)
 	} else{
 		stop("\nsolnp-->error: inequality function given without upper bounds\n", call. = FALSE)
 	}
-	if(any(ineqLB>ineqUB))
+	if(any(ineqLB > ineqUB))
 		stop("\nsolnp-->error: ineqUB must be greater than ineqLB\n", call. = FALSE)
-	# transform from:
-	# ineqLB =< ineqfun(x) =< ineqUB
-	# to:
-	# ineqfun(x) >= 0
+
 	assign(".ineqLB", ineqLB, envir = .env)
 	assign(".ineqUB", ineqUB, envir = .env)
 	assign(".solnp_ineqfun", fun, envir = .env)
 	return(val)
 }
-
 
 
 .checkeq = function(pars, fun, eqB, .env, ...)
@@ -159,13 +166,15 @@
 {
 	# must be a matrix -> nrows = no.inequalities, ncol = length(pars)
 	val = fun(pars, ...)
+	.ineqLB = get(".ineqLB", envir = .env)
+	.ineqUB = get(".ineqUB", envir = .env)
 	if(!is.matrix(val))
 		stop("\nsolnp-->error: Jacobian of Inequality must return a matrix type object\n", call. = FALSE)
 	nd = dim(val)
-	if(nd[2]!=length(pars))
+	if(nd[2] != length(pars))
 		stop("\nsolnp-->error: Jacobian of Inequality column dimension must be equal to length
 						of parameters\n", call. = FALSE)
-	if(nd[1]!=length(.solnp_ineqUB))
+	if(nd[1] != length(.ineqUB))
 		stop("\nsolnp-->error: Jacobian of Inequality row dimension must be equal to length
 						of inequality bounds vector\n", call. = FALSE)
 	# as in inequality function, transforms from a 2 sided inequality to a one sided inequality
@@ -180,15 +189,14 @@
 {
 	# must be a matrix -> nrows = no.equalities, ncol = length(pars)
 	val = fun(pars, ...)
+	.eqB = get(".eqB", env = .env)
 	if(!is.matrix(val))
 		stop("\nsolnp-->error: Jacobian of Equality must return a matrix type object\n", call. = FALSE)
 	nd = dim(val)
-	if(nd[2]!=length(pars))
-		stop("\nsolnp-->error: Jacobian of Equality column dimension must be equal to length
-						of parameters\n", call. = FALSE)
-	if(nd[1]!=length(.solnp_eqB))
-		stop("\nsolnp-->error: Jacobian of Equality row dimension must be equal to length
-						of equality bounds vector\n", call. = FALSE)
+	if(nd[2] != length(pars))
+		stop("\nsolnp-->error: Jacobian of Equality column dimension must be equal to length of parameters\n", call. = FALSE)
+	if(nd[1] != length(.eqB))
+		stop("\nsolnp-->error: Jacobian of Equality row dimension must be equal to length of equality bounds vector\n", call. = FALSE)
 	assign(".solnp_eqjac", fun, envir = .env)
 	return(val)
 }

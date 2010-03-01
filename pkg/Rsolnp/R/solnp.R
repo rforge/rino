@@ -43,15 +43,18 @@
 #           TOL  : tolerance on feasibility and optimality
 # defaults RHO=1, MAJIT=10, MINIT=10, DELTA=1.0e-5, TOL=1.0e-4
 
-solnp = function(pars, fun, grad = NULL, eqfun = NULL, eqB = NULL, 
-		eqgrad = NULL, ineqfun = NULL, ineqLB = NULL, ineqUB = NULL, 
-		ineqgrad = NULL, LB = NULL, UB = NULL, control = list(), ...)
+solnp = function(pars, fun, eqfun = NULL, eqB = NULL, ineqfun = NULL, ineqLB = NULL, ineqUB = NULL, LB = NULL, UB = NULL, control = list(), ...)
 {
 	# start timer
 	tic = Sys.time()
+	
 	# get environment
 	.solnpenv <- environment()
-	.solnp_nfn <<- 0
+	
+	# initiate function count
+	assign(".solnp_nfn", 0, envir = .solnpenv)
+	
+	# index of function indicators
 	# [1] length of pars
 	# [2] has function gradient?
 	# [3] has hessian?
@@ -63,6 +66,8 @@ solnp = function(pars, fun, grad = NULL, eqfun = NULL, eqB = NULL,
 	# [9] has jacobian (equality)
 	# [10] has upper / lower bounds
 	# [11] has either lower/upper bounds or ineq
+	
+	
 	ind = rep(0, 11)
 	np = ind[1]  = length(pars)
 	# lower parameter bounds - indicator
@@ -71,6 +76,7 @@ solnp = function(pars, fun, grad = NULL, eqfun = NULL, eqB = NULL,
 	
 	# do parameter and LB/UB checks
 	check1 = .checkpars(pars, LB, UB, .solnpenv)
+	
 	# .solnp_LB and .solnp_UB assigned
 	if( !is.null(.LB) || !is.null(.UB) ) ind[10] = 1
 	
@@ -78,15 +84,17 @@ solnp = function(pars, fun, grad = NULL, eqfun = NULL, eqB = NULL,
 	funv = .checkfun(pars, fun, .solnpenv, ...)
 	#.solnp_fun assigned
 	
+	# Analytical Gradient Functionality not yet implemented in subnp function
+	
 	# gradient and hessian checks
-	if(!is.null(grad)){
-		gradv = .checkgrad(pars, grad, .solnpenv, ...)
-		ind[2] = 1
-	} else{
-		.solnp_gradfun = function(pars, ...) .fdgrad(pars, fun = .solnp_fun, ...)
+	#if(!is.null(grad)){
+	#	gradv = .checkgrad(pars, grad, .solnpenv, ...)
+	#	ind[2] = 1
+	#} else{
+	#	.solnp_gradfun = function(pars, ...) .fdgrad(pars, fun = .solnp_fun, ...)
 		ind[2] = 0
-		gradv = .solnp_gradfun(pars, ...)
-	}
+	#	gradv = .solnp_gradfun(pars, ...)
+	#}
 	# .solnp_gradfun(pars, ...) assigned
 
 	.solnp_hessfun = NULL
@@ -97,28 +105,28 @@ solnp = function(pars, fun, grad = NULL, eqfun = NULL, eqB = NULL,
 	# do inequality checks and return starting values
 	
 	if(!is.null(ineqfun)){
-		ineqv =.checkineq(pars, ineqfun, ineqLB, ineqUB, .solnpenv, ...)
-		ind[4] = 1
-		nineq = length(ineqLB)
-		ind[5] = nineq
-		ineqx0 = (.ineqLB + .ineqUB)/2
-		if(!is.null(ineqgrad)){
-			ineqjacv = .cheqjacineq(pars, gradineq, .ineqUB, .ineqLB, .solnpenv, ...)
-			ind[6] = 1
-		} else{
-			.solnp_ineqjac = function(pars, ...) .fdjac(pars, fun = .solnp_ineqfun, ...)
-			ind[6] = 0
-			ineqjacv = .solnp_ineqjac(pars, ...)
-		}
+		ineqv 	= .checkineq(pars, ineqfun, ineqLB, ineqUB, .solnpenv, ...)
+		ind[4] 	= 1
+		nineq 	= length(ineqLB)
+		ind[5] 	= nineq
+		ineqx0 	= (.ineqLB + .ineqUB)/2
+		#if(!is.null(ineqgrad)){
+		#	ineqjacv = .cheqjacineq(pars, gradineq, .ineqUB, .ineqLB, .solnpenv, ...)
+		#	ind[6] = 1
+		#} else{
+		# .solnp_ineqjac = function(pars, ...) .fdjac(pars, fun = .solnp_ineqfun, ...)
+		ind[6] = 0
+		#ineqjacv = .solnp_ineqjac(pars, ...)
+		#}
 	} else{
 		.solnp_ineqfun = function(pars, ...) .emptyfun(pars, ...)
-		.solnp_ineqjac = function(pars, ...) .emptyjac(pars, ...)
-		ineqv = NULL
-		ind[4] = 0
-		nineq = 0
-		ind[5] = 0
-		ind[6] = 0
-		ineqx0 = NULL
+		# .solnp_ineqjac = function(pars, ...) .emptyjac(pars, ...)
+		ineqv 	= NULL
+		ind[4] 	= 0
+		nineq 	= 0
+		ind[5] 	= 0
+		ind[6] 	= 0
+		ineqx0 	= NULL
 		.ineqLB = NULL
 		.ineqUB = NULL
 	}
@@ -127,27 +135,27 @@ solnp = function(pars, fun, grad = NULL, eqfun = NULL, eqB = NULL,
 
 	# equality checks
 	if(!is.null(eqfun)){
-		eqv = .checkeq(pars, eqfun, eqB, .solnpenv, ...)
-		ind[7] = 1
-		neq = length(.eqB)
-		ind[8] = neq
-		if(!is.null(eqgrad)){
-			eqjacv = .cheqjaceq(pars, gradeq, .solnpenv, ...)
-			ind[9] = 1
-		} else{
-			.solnp_eqjac = function(pars, ...) .fdjac(pars, fun = .solnp_eqfun, ...)
-			eqjacv = .solnp_eqjac(pars, ...)
+		eqv 	= .checkeq(pars, eqfun, eqB, .solnpenv, ...)
+		ind[7] 	= 1
+		neq 	= length(.eqB)
+		ind[8] 	= neq
+		#if(!is.null(eqgrad)){
+		#	eqjacv = .cheqjaceq(pars, gradeq, .solnpenv, ...)
+		#	ind[9] = 1
+		#} else{
+		#	.solnp_eqjac = function(pars, ...) .fdjac(pars, fun = .solnp_eqfun, ...)
+		#	eqjacv = .solnp_eqjac(pars, ...)
 			ind[9] = 0
-		}
+		#}
 	} else {
 		eqv = NULL
-		eqjacv = NULL
+		#eqjacv = NULL
 		.solnp_eqfun = function(pars, ...) .emptyfun(pars, ...)
-		.solnp_eqjac = function(pars, ...) .emptyjac(pars, ...)
-		ind[7] = 0
-		neq = 0
-		ind[8] = 0
-		ind[9] = 0
+		#.solnp_eqjac = function(pars, ...) .emptyjac(pars, ...)
+		ind[7] 	= 0
+		neq 	= 0
+		ind[8] 	= 0
+		ind[9] 	= 0
 	}
 	# .solnp_eqfun(pars, ...) and .solnp_eqjac(pars, ...) assigned
 	# .solnp_eqB assigned
@@ -187,7 +195,7 @@ solnp = function(pars, fun, grad = NULL, eqfun = NULL, eqB = NULL,
 			constraint[ (neq + 1):tc ] = constraint[ (neq + 1):tc ] - ineqx0
 		}
 		tt[ 2 ] = .vnorm(constraint)
-		if( max(tt[ 2 ] - 10 * tol, nineq) <= 0 ) rho = 0
+		if( max(tt[ 2 ] - 10 * tol, nineq, na.rm = TRUE) <= 0 ) rho = 0
 	} else{
 		lambda = 0
 	}
@@ -200,7 +208,7 @@ solnp = function(pars, fun, grad = NULL, eqfun = NULL, eqB = NULL,
 	
 	while( .solnp_iter < maxit ){
 		.solnp_iter = .solnp_iter + 1
-		.subnp_ctrl = c(rho, minit, delta, tol)
+		.subnp_ctrl = c(rho, minit, delta, tol, trace)
 		
 		# make the scale for the cost, the equality constraints, the inequality
 		# constraints, and the parameters
@@ -228,8 +236,9 @@ solnp = function(pars, fun, grad = NULL, eqfun = NULL, eqB = NULL,
 		hessv  = res$hessv
 		mu = res$lambda
 		temp = p[ (nineq + 1):(nineq + np) ]
-		funv = .solnp_fun(temp, ...)
-		.solnp_nfn <<- .solnp_nfn + 1
+		funv = .safefun(temp, .solnp_fun, ...)
+		ctmp = get(".solnp_nfn", envir =  .solnpenv)
+		assign(".solnp_nfn", ctmp + 1, envir = .solnpenv)
 		
 		tempdf = cbind(temp, funv)
 		
@@ -297,16 +306,17 @@ solnp = function(pars, fun, grad = NULL, eqfun = NULL, eqB = NULL,
 	
 	if( .vnorm( c(tt[ 1 ], tt[ 2 ]) ) <= tol ) {
 		convergence = 0
-		cat( paste( "\nsolnp--> Completed in ", .solnp_iter, " iterations\n", sep="" ) )
+		if( trace ) cat( paste( "\nsolnp--> Completed in ", .solnp_iter, " iterations\n", sep="" ) )
 	} else{
 		convergence = 1
-		cat( paste( "\nsolnp--> Exiting after maximum number of iterations\n",
+		if( trace ) cat( paste( "\nsolnp--> Exiting after maximum number of iterations\n",
 						"Tolerance not achieved\n", sep="" ) )
 	}
 	# end timer
+	ctmp = get(".solnp_nfn", envir =  .solnpenv)
 	toc = Sys.time() - tic
 	ans = list(pars = p, convergence = convergence, values = jh, lagrange = lambda, 
-			hessian = hessv, ineqx0 = ineqx0, nfuneval = .solnp_nfn, outer.iter = .solnp_iter, 
+			hessian = hessv, ineqx0 = ineqx0, nfuneval = ctmp, outer.iter = .solnp_iter, 
 			elapsed = toc)
 	return( ans )
 }

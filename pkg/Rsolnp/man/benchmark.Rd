@@ -29,7 +29,7 @@ can be accessed throught the \code{description} attribute of the data.frame.
 \references{
 W.Hock and K.Schittkowski, \emph{Test Examples for Nonlinear Programming Codes}, 
 Lecture Notes in Economics and Mathematical Systems. Springer Verlag, 1981.\cr 
-Y.Ye,\emph{Interior algorithms for linear, quadratic, and linearly constrained non 
+Y.Ye, \emph{Interior algorithms for linear, quadratic, and linearly constrained non 
 linear programming}, PhD Thesis, Department of EES Stanford University, Stanford CA.\cr
 B.A.Murtagh and M.A.Saunders, \emph{MINOS 5.5 User's Guide, Report SOL 83-20R}, Systems 
 Optimization Laboratory, Stanford University (revised July 1998).\cr
@@ -49,6 +49,8 @@ benchmark(id = "KappaRatio")
 benchmark(id = "RosenSuzuki")
 benchmark(id = "Wright4")
 benchmark(id = "Wright9")
+benchmark(id = "Electron")
+benchmark(id = "Permutation")
 # accessing the description
 test = benchmark(id = "Entropy")
 attr(test, "description")

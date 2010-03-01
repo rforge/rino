@@ -16,6 +16,6 @@
 #################################################################################
 .onLoad = function(lib, pkg="Rsolnp")
 {
-	cat("\nLoading required package: Rsolnp (version 0.3)\n")
+	cat("\nLoading required package: Rsolnp (version 1.0)\n")
 }
 

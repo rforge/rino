@@ -18,7 +18,7 @@
 benchmarkids <- function()
 {
 return(c("Powell", "Wright4", "Wright9", "Alkylation", "Entropy", "Box", "RosenSuzuki", 
-				"RachevRatio", "KappaRatio"))
+				"RachevRatio", "KappaRatio", "Electron", "Permutation"))
 }
 
 
@@ -35,7 +35,9 @@ benchmark <- function( id = "Powell")
 			Box = .box(),
 			RosenSuzuki = .rosensuzuki(),
 			RachevRatio = .rachevratio(),
-			KappaRatio = .kapparatio())
+			KappaRatio = .kapparatio(),
+			Electron = .electron(),
+			Permutation = .permutation())
 	return(ans)
 }
 
@@ -374,7 +376,7 @@ from Problem 43 of Hock and Schittkowski (1981).")
 .rachevratio = function()
 {
 	data(dji30ret)
-	dj30=as.matrix(dji30ret)
+	dj30 = as.matrix(dji30ret)
 	
 	.VaR = function(x, alpha = 0.05)
 	{ 
@@ -446,10 +448,11 @@ It has one linear equality constraint and variable bounds. See Rachev (2000) for
 # setup the required sample functions:
 # r is the threshold, n is the power (n=1 + 1 is the omega measure of Shadwick and Keating,
 # while n=2 is the sortino measure.)
+
 .kapparatio = function()
 {
 	data(dji30ret)
-	dj30=as.matrix(dji30ret)
+	dj30 = as.matrix(dji30ret)
 	
 	.kappa = function(port, r, n)
 	{
@@ -504,3 +507,125 @@ It has one linear equality constraint and variable bounds. See Rachev (2000) for
 It has one linear equality constraint and variable bounds. See Kaplan and Knowles (2004) for details.")
 	return(bt)
 }
+
+#----------------------------------------------------------------------------------
+# Some Problems in Global Optimization
+#----------------------------------------------------------------------------------
+
+
+# Distribution of Electrons on a Sphere
+# Given n electrons, find the equilibrium state distribution (of minimal Coulomb potential) 
+# of the electrons positioned on a conducting sphere. This model is from the COPS benchmarking suite.
+# See http://www-unix.mcs.anl.gov/~more/cops/.
+
+.electron = function()
+{
+	gofn = function(dat, n)
+	{
+		
+		x = dat[1:n]
+		y = dat[(n+1):(2*n)]
+		z = dat[(2*n+1):(3*n)]
+		ii = matrix(1:n, ncol = n, nrow = n, byrow = TRUE)
+		jj = matrix(1:n, ncol = n, nrow = n)
+		ij = which(ii<jj, arr.ind = TRUE)
+		i = ij[,1]
+		j = ij[,2]
+		#  Coulomb potential
+		potential = sum(1.0/sqrt((x[i]-x[j])^2 + (y[i]-y[j])^2 + (z[i]-z[j])^2))
+		potential
+	}
+	
+	goeqfn = function(dat, n)
+	{
+		x = dat[1:n]
+		y = dat[(n+1):(2*n)]
+		z = dat[(2*n+1):(3*n)]
+		apply(cbind(x^2, y^2, z^2), 1, "sum")
+	}
+	
+	n = 25
+	LB = rep(-1, 3*n)
+	UB = rep(1, 3*n)
+	eqB = rep(1, n)
+	ans = gosolnp(pars  = NULL, fixed = NULL, fun = gofn, eqfun = goeqfn, eqB = eqB, LB = LB, UB = UB, 
+			control = list(), distr = rep(1, length(LB)), distr.opt = list(outer.iter = 10, trace = 1), 
+			n.restarts = 2, n.sim = 20000, use.multicore = FALSE, rseed = 443, n = 25)
+	
+	conopt = list()
+	conopt$fn  = 243.813
+	conopt$iter = 33
+	conopt$nfun = NA
+	conopt$elapsed = 0.041
+	conopt$pars = c(-0.0117133872042326,	0.627138691757704,	-0.471025867741051,	-0.164419761338935,	-0.0315460712487934,	
+			-0.12718981058582,	-0.540049624346613,	0.600346770449059,	0.29796281847713,	-0.740960572770077,	0.972512148478245,	
+			-0.870858895858346,	0.84178885636396,	-0.182471994739506,	0.603293664844919,	0.0834172554171806,	0.51317309921937,	
+			0.260639996237799,	-0.0972877803105543,	-0.979882559381314,	-0.64809471648373,	-0.722351411610064,	0.847184430059647,	
+			0.514683899757428,	-0.574607272207711, 0.114609211815613,	-0.748168886860133,	-0.379763612890494,	0.743271243797936,	
+			0.846784034469756,	0.220425955966718,	0.839147591392778,	-0.613810163641104,	-0.499794531840362,	-0.199680552951248,	
+			-0.105141937435843,	-0.434753057357539,	-0.127562956191463,	-0.895691740627038,	0.574257349984438,	-0.967631920158332,	
+			-0.0243647398873149,	0.959445715727407,	-0.517406241891138,	0.197677956191858,	0.503867654081605,	0.286619450971711,	
+			0.522509289901788,	0.474911361600545,	-0.768915699421274, -0.993341595387613,	-0.21665728244143,	-0.796187308516752,	-0.648470508368975,	
+			0.531000606737778,	0.967075565826839,	-0.0646353084836963,	0.512660548728168,	-0.813279524362711,	0.641174786133487,	
+			0.207762590603952,	-0.229335044471304,	-0.524518077390237,	-0.405512363446903,	0.55341236880543,	0.23818066376044,	
+			0.857939234263016,	-0.107381147942665,	0.850191665834437,	0.0274516931378701,	0.571043453369507,	-0.629331175510656,	
+			-0.0962423162171412,	-0.713834491989006,	0.280348229724225)
+	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
+					round(ans$outer.iter, 0L),
+					round(ans$convergence, 0L),
+					round(ans$nfuneval, 0L),
+					round(ans$elapsed, 3L),
+					matrix(round(ans$pars, 5L), ncol = 1L)),
+			conopt =  rbind(round(conopt$fn, 5L),
+					round(conopt$iter, 0L),
+					round(0, 0L),
+					round(conopt$nfun, 0L),
+					round(conopt$elapsed, 3L),
+					matrix(round(conopt$pars, 5L), ncol = 1L)) )
+	rownames(bt) <- c("funcValue", "majorIter", "exitFlag", "nfunEval", "time(sec)",
+			paste("par.", 1L:length(ans$pars), sep = "") )
+	colnames(bt) = c("solnp", "conopt")
+	attr(bt, "description") = paste("The equilibrium state distribution (of minimal Coulomb potential)\n of the electrons positioned on a conducting sphere.")
+	return(bt)
+}
+
+# Permutation Problem -- Unique Solution f(x) = 0 and x(i) = i
+
+.permutation = function()
+{
+	.perm = function(x, n, b){
+		F = 0
+		for(k in 1:n){
+			S = 0
+			for(i in 1:n){
+				S = S + ( ( (i^k) + b ) * (( x[i]/i )^k -1))
+			}
+			F = F + S^2
+		}
+		F
+	}
+	
+	ans = gosolnp(pars  = NULL, fixed = NULL, fun = .perm, eqfun = NULL, eqB = NULL, LB = rep(-4, 4), UB = rep(4, 4), 
+			control = list(outer.iter = 25, trace = 1, tol = 1e-9), distr = rep(1, 4), distr.opt = list(), 
+			n.restarts = 6, n.sim = 20000, use.multicore = FALSE, rseed = 99, n = 4, b =0.5)
+
+	
+	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
+					round(ans$outer.iter, 0L),
+					round(ans$convergence, 0L),
+					round(ans$nfuneval, 0L),
+					round(ans$elapsed, 3L),
+					matrix(round(ans$pars, 5L), ncol = 1L)),
+			actual =  rbind(0,
+					NA,
+					round(0, 0L),
+					NA,
+					NA,
+					matrix(1:4, ncol = 1L)) )
+	rownames(bt) <- c("funcValue", "majorIter", "exitFlag", "nfunEval", "time(sec)",
+			paste("par.", 1L:length(ans$pars), sep = "") )
+	colnames(bt) = c("solnp", "expected")
+	attr(bt, "description") = paste("Permutation Problem PERM(4,0.5).")
+
+}
+
