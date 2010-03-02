@@ -14,8 +14,9 @@
 ##   GNU General Public License for more details.
 ##
 #################################################################################
-.onLoad = function(lib, pkg="Rsolnp")
+.onLoad = function(libname, pkgname)
 {
-	cat("\nLoading required package: Rsolnp (version 1.0)\n")
+        version <- utils::packageDescription("Rsolnp")$Version
+	writeLines(sprintf("%s (version %s) initialized.", pkgname, version))
 }
 

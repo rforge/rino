@@ -17,7 +17,7 @@
 
 benchmarkids <- function()
 {
-return(c("Powell", "Wright4", "Wright9", "Alkylation", "Entropy", "Box", "RosenSuzuki", 
+return(c("Powell", "Wright4", "Wright9", "Alkylation", "Entropy", "Box", "RosenSuzuki",
 				"RachevRatio", "KappaRatio", "Electron", "Permutation"))
 }
 
@@ -47,7 +47,7 @@ benchmark <- function( id = "Powell")
 	{
 		exp(x[1]*x[2]*x[3]*x[4]*x[5])
 	}
-	
+
 	.eqn1 = function(x){
 		z1=x[1]*x[1]+x[2]*x[2]+x[3]*x[3]+x[4]*x[4]+x[5]*x[5]
 		z2=x[2]*x[3]-5*x[4]*x[5]
@@ -64,7 +64,7 @@ benchmark <- function( id = "Powell")
 	minos$nfun = 524
 	minos$iter = 12
 	minos$elapsed = 0.2184
-	
+
 	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
 					round(ans$outer.iter, 0L),
 					round(ans$convergence, 0L),
@@ -81,7 +81,7 @@ benchmark <- function( id = "Powell")
 			paste("par.", 1L:length(ans$pars), sep = "") )
 	attr(bt, "description") = paste("Powell's exponential problem is a function of five variables with
 three nonlinear equality constraints on the variables.")
-	
+
 	return(bt)
 }
 
@@ -91,14 +91,14 @@ three nonlinear equality constraints on the variables.")
 	{
 		(x[1]-1)^2+(x[1]-x[2])^2+(x[2]-x[3])^3+(x[3]-x[4])^4+(x[4]-x[5])^4
 	}
-	
+
 	.eqn1 = function(x){
 		z1=x[1]+x[2]*x[2]+x[3]*x[3]*x[3]
 		z2=x[2]-x[3]*x[3]+x[4]
 		z3=x[1]*x[5]
 		return(c(z1,z2,z3))
 	}
-	
+
 	.x0 = c(1, 1, 1, 1, 1)
 	ctrl=list(trace=0)
 	ans = solnp(.x0, fun = .fn1, eqfun = .eqn1, eqB = c(2+3*sqrt(2),-2+2*sqrt(2),2), control=ctrl)
@@ -108,7 +108,7 @@ three nonlinear equality constraints on the variables.")
 	minos$nfun = 560
 	minos$iter = 9
 	minos$elapsed = 0.249
-	
+
 	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
 					round(ans$outer.iter, 0L),
 					round(ans$convergence, 0L),
@@ -136,7 +136,7 @@ test problem has several local solutions and taken from Wright (1976).")
 		10*x[1]*x[4]-6*x[3]*x[2]*x[2]+x[2]*(x[1]*x[1]*x[1])+
 				9*sin(x[5]-x[3])+x[5]^4*x[4]*x[4]*x[2]*x[2]*x[2]
 	}
-	
+
 	.ineqn1 = function(x){
 		z1=x[1]*x[1]+x[2]*x[2]+x[3]*x[3]+x[4]*x[4]+x[5]*x[5]
 		z2=x[1]*x[1]*x[3]-x[4]*x[5]
@@ -154,7 +154,7 @@ test problem has several local solutions and taken from Wright (1976).")
 	minos$nfun = 794
 	minos$iter = 11
 	minos$elapsed = 0.281
-	
+
 	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
 					round(ans$outer.iter, 0L),
 					round(ans$convergence, 0L),
@@ -169,7 +169,7 @@ test problem has several local solutions and taken from Wright (1976).")
 					matrix(round(minos$pars, 5L), ncol = 1L)) )
 	rownames(bt) <- c("funcValue", "majorIter", "exitFlag", "nfunEval", "time(sec)",
 			paste("par.", 1L:length(ans$pars), sep = "") )
-	attr(bt, "description") = paste("Wright's ninth problem is a function of five variables with three 
+	attr(bt, "description") = paste("Wright's ninth problem is a function of five variables with three
 non linear inequality constraints on the variables. This popular test
 problem has several local solutions and taken from Wright (1976).")
 	return(bt)
@@ -181,7 +181,7 @@ problem has several local solutions and taken from Wright (1976).")
 	{
 		-0.63*x[4]*x[7]+50.4*x[1]+3.5*x[2]+x[3]+33.6*x[5]
 	}
-	
+
 	.eqn1 = function(x){
 		z1=98*x[3]-0.1*x[4]*x[6]*x[9]-x[3]*x[6]
 		z2=1000*x[2]+100*x[5]-100*x[1]*x[8]
@@ -202,7 +202,7 @@ problem has several local solutions and taken from Wright (1976).")
 	UB = c(20,16,120,50,20,93,95,12,4,162)
 	.x0 = c(17.45,12,110,30,19.74,89.2,92.8,8,3.6,155)
 	ctrl = list(rho = 0, trace=0)
-	ans = solnp(.x0, fun = .fn1, eqfun = .eqn1, eqB = eqB, ineqfun = .ineqn1, ineqLB = ineqLB, 
+	ans = solnp(.x0, fun = .fn1, eqfun = .eqn1, eqB = eqB, ineqfun = .ineqn1, ineqLB = ineqLB,
 			ineqUB = ineqUB, LB = LB, UB = UB, control = ctrl)
 	minos = list()
 	minos$fn = -172.642
@@ -210,7 +210,7 @@ problem has several local solutions and taken from Wright (1976).")
 	minos$nfun = 2587
 	minos$iter = 13
 	minos$elapsed = 0.811
-	
+
 	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
 					round(ans$outer.iter, 0L),
 					round(ans$convergence, 0L),
@@ -244,7 +244,7 @@ The problem is taken from Locke and Westerberg (1980).")
 		ans = f-log(.vnorm(x-1) + 0.1)
 		ans
 	}
-	
+
 	.eqn1 = function(x){
 		sum(x)
 	}
@@ -256,12 +256,12 @@ The problem is taken from Locke and Westerberg (1980).")
 	ans = solnp(.x0, fun = .fn1, eqfun = .eqn1, eqB = eqB, LB = LB, UB = UB, control=ctrl)
 	minos = list()
 	minos$fn = 0.1854782
-	minos$pars = c(2.2801555, 0.8577605, 0.8577605, 0.8577605, 0.8577605, 0.8577605, 
+	minos$pars = c(2.2801555, 0.8577605, 0.8577605, 0.8577605, 0.8577605, 0.8577605,
 			0.8577605, 0.8577605, 0.8577605, 0.8577605)
 	minos$nfun = 886
 	minos$iter = 4
 	minos$elapsed = 0.296
-	
+
 	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
 					round(ans$outer.iter, 0L),
 					round(ans$convergence, 0L),
@@ -287,7 +287,7 @@ equality constraint and variable positivity bounds.")
 	{
 		-x[1]*x[2]*x[3]
 	}
-	
+
 	.eqn1 = function(x){
 		4*x[1]*x[2]+2*x[2]*x[3]+2*x[3]*x[1]
 	}
@@ -295,7 +295,7 @@ equality constraint and variable positivity bounds.")
 	eqB = 100
 	LB = rep(1, 3)
 	UB = rep(10, 3)
-	
+
 	.x0 = c(1.1, 1.1, 9)
 	ctrl=list(trace=0)
 	ans = solnp(.x0, fun = .fn1, eqfun = .eqn1, eqB = eqB, LB = LB, UB = UB, control=ctrl)
@@ -305,7 +305,7 @@ equality constraint and variable positivity bounds.")
 	minos$nfun = 394
 	minos$iter = 9
 	minos$elapsed = 0.156
-	
+
 	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
 					round(ans$outer.iter, 0L),
 					round(ans$convergence, 0L),
@@ -349,7 +349,7 @@ linear equality constraint and variable bounds.")
 	minos$nfun = 527
 	minos$iter = 12
 	minos$elapsed = 0.203
-	
+
 	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
 					round(ans$outer.iter, 0L),
 					round(ans$convergence, 0L),
@@ -364,29 +364,29 @@ linear equality constraint and variable bounds.")
 					matrix(round(minos$pars, 5L), ncol = 1L)) )
 	rownames(bt) <- c("funcValue", "majorIter", "exitFlag", "nfunEval", "time(sec)",
 			paste("par.", 1L:length(ans$pars), sep = "") )
-	attr(bt, "description") = paste("The Rosen-Suzuki problem is a function of four variables with 
-three nonlinear inequality constraints on the variables. It is taken 
+	attr(bt, "description") = paste("The Rosen-Suzuki problem is a function of four variables with
+three nonlinear inequality constraints on the variables. It is taken
 from Problem 43 of Hock and Schittkowski (1981).")
 	return(bt)
 }
 
 #---------------------------------------------------------------------------------
-# portfolio optimization problems / benchmarked against SNOPT (SOL) - with tomlab 
+# portfolio optimization problems / benchmarked against SNOPT (SOL) - with tomlab
 # interface for matlab
 .rachevratio = function()
 {
-	data(dji30ret)
-	dj30 = as.matrix(dji30ret)
-	
+        ## to avoid annoying NOTEs in R CMD check we need to "get" dji30ret
+	dj30 = as.matrix(get(data(dji30ret)))
+
 	.VaR = function(x, alpha = 0.05)
-	{ 
+	{
 		x = as.matrix(x)
 		VaR = quantile(x, probs = alpha, type = 1)
 		VaR
 	}
-	
-	.CVaR = function(x, alpha = 0.05)  
-	{   
+
+	.CVaR = function(x, alpha = 0.05)
+	{
 		x = as.matrix(x)
 		VaR = .VaR(x, alpha)
 		X = as.vector(x[, 1])
@@ -399,7 +399,7 @@ from Problem 43 of Hock and Schittkowski (1981).")
 		obj=-.CVaR(-port)/.CVaR(port)
 		return(obj)
 	}
-	
+
 	# abs(sum) of weights ==1
 	.eqn1  = function(x,ret)
 	{
@@ -408,7 +408,7 @@ from Problem 43 of Hock and Schittkowski (1981).")
 	LB=rep(0,30)
 	UB=rep(0.1,30)
 	pars=rep(1/30,30)
-	
+
 	.x0 = rep(1/30,30)
 	ctrl = list(delta = 1e-10, tol = 1e-8, trace = 0)
 	ans = solnp(.x0, fun = .fn1, eqfun = .eqn1, eqB = 1, LB = LB, UB = UB, control = ctrl, ret = dj30)
@@ -419,7 +419,7 @@ from Problem 43 of Hock and Schittkowski (1981).")
 	snopt$nfun = 3867
 	snopt$iter = 8
 	snopt$elapsed = 7.534
-		
+
 	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
 					round(ans$outer.iter, 0L),
 					round(ans$convergence, 0L),
@@ -434,15 +434,15 @@ from Problem 43 of Hock and Schittkowski (1981).")
 					matrix(round(snopt$pars, 5L), ncol = 1L)) )
 	rownames(bt) = c("funcValue", "majorIter", "exitFlag", "nfunEval", "time(sec)",
 			paste("par.", 1L:length(ans$pars), sep = "") )
-	colnames(bt) = c("solnp", "snopt") 
-	attr(bt, "description") = paste("The Rachev Ratio problem minimizes a portfolio's Rachev ratio. 
+	colnames(bt) = c("solnp", "snopt")
+	attr(bt, "description") = paste("The Rachev Ratio problem minimizes a portfolio's Rachev ratio.
 It has one linear equality constraint and variable bounds. See Rachev (2000) for details.")
 	return(bt)
 }
 
 # Kappa Optimization (Kaplan and Knowles...subsumes omega and sortino measures among others)
-# It is in fact the excess to benchmark return divided by the standardized Lower Partial Moment 
-# measure and as such Kaplan and Knowles are not entirely entitled to claim a special measure 
+# It is in fact the excess to benchmark return divided by the standardized Lower Partial Moment
+# measure and as such Kaplan and Knowles are not entirely entitled to claim a special measure
 # for this as it was described among others by Fishburn in the 70's.
 #----------------------------------------------------------------------------------
 # setup the required sample functions:
@@ -451,32 +451,32 @@ It has one linear equality constraint and variable bounds. See Rachev (2000) for
 
 .kapparatio = function()
 {
-	data(dji30ret)
-	dj30 = as.matrix(dji30ret)
-	
+        ## to avoid annoying NOTEs in R CMD check we need to "get" dji30ret
+	dj30 = as.matrix(get(data(dji30ret)))
+
 	.kappa = function(port, r, n)
 	{
 		z = mean((port< r) * (r-port)^n)
 		sg = sign(z)
 		(mean(port) - r) / (sg*abs(z)^(1/n))
 	}
-	
-	
+
+
 	.fn1 = function(x, ret, r, n)
 	{
 		port = ret%*%x
 		obj = -.kappa(port,r,n)
 		return(obj)
 	}
-	
+
 	# abs(sum) of weights ==1
 	.eqn1  = function(x, ret, r, n)
 	{
 		sum(abs(x))
 	}
-	
+
 	LB = rep(0,30)
-	UB = rep(0.1,30)	
+	UB = rep(0.1,30)
 	.x0 = rep(1/30,30)
 	ctrl = list(delta = 1e-10, tol = 1e-8, trace = 0)
 	ans = solnp(.x0, fun = .fn1, eqfun = .eqn1, eqB = 1, LB = LB, UB = UB, control=ctrl, ret=dj30, r = 0, n = 2)
@@ -487,7 +487,7 @@ It has one linear equality constraint and variable bounds. See Rachev (2000) for
 	snopt$nfun = 1234
 	snopt$iter = 3
 	snopt$elapsed = 0.983
-	
+
 	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
 					round(ans$outer.iter, 0L),
 					round(ans$convergence, 0L),
@@ -502,8 +502,8 @@ It has one linear equality constraint and variable bounds. See Rachev (2000) for
 					matrix(round(snopt$pars, 5L), ncol = 1L)) )
 	rownames(bt) <- c("funcValue", "majorIter", "exitFlag", "nfunEval", "time(sec)",
 			paste("par.", 1L:length(ans$pars), sep = "") )
-	colnames(bt) = c("solnp", "snopt") 
-	attr(bt, "description") = paste("The PortKappa problem minimizes a portfolio's Kappa ratio. 
+	colnames(bt) = c("solnp", "snopt")
+	attr(bt, "description") = paste("The PortKappa problem minimizes a portfolio's Kappa ratio.
 It has one linear equality constraint and variable bounds. See Kaplan and Knowles (2004) for details.")
 	return(bt)
 }
@@ -514,7 +514,7 @@ It has one linear equality constraint and variable bounds. See Kaplan and Knowle
 
 
 # Distribution of Electrons on a Sphere
-# Given n electrons, find the equilibrium state distribution (of minimal Coulomb potential) 
+# Given n electrons, find the equilibrium state distribution (of minimal Coulomb potential)
 # of the electrons positioned on a conducting sphere. This model is from the COPS benchmarking suite.
 # See http://www-unix.mcs.anl.gov/~more/cops/.
 
@@ -522,7 +522,7 @@ It has one linear equality constraint and variable bounds. See Kaplan and Knowle
 {
 	gofn = function(dat, n)
 	{
-		
+
 		x = dat[1:n]
 		y = dat[(n+1):(2*n)]
 		z = dat[(2*n+1):(3*n)]
@@ -535,7 +535,7 @@ It has one linear equality constraint and variable bounds. See Kaplan and Knowle
 		potential = sum(1.0/sqrt((x[i]-x[j])^2 + (y[i]-y[j])^2 + (z[i]-z[j])^2))
 		potential
 	}
-	
+
 	goeqfn = function(dat, n)
 	{
 		x = dat[1:n]
@@ -543,32 +543,32 @@ It has one linear equality constraint and variable bounds. See Kaplan and Knowle
 		z = dat[(2*n+1):(3*n)]
 		apply(cbind(x^2, y^2, z^2), 1, "sum")
 	}
-	
+
 	n = 25
 	LB = rep(-1, 3*n)
 	UB = rep(1, 3*n)
 	eqB = rep(1, n)
-	ans = gosolnp(pars  = NULL, fixed = NULL, fun = gofn, eqfun = goeqfn, eqB = eqB, LB = LB, UB = UB, 
-			control = list(), distr = rep(1, length(LB)), distr.opt = list(outer.iter = 10, trace = 1), 
+	ans = gosolnp(pars  = NULL, fixed = NULL, fun = gofn, eqfun = goeqfn, eqB = eqB, LB = LB, UB = UB,
+			control = list(), distr = rep(1, length(LB)), distr.opt = list(outer.iter = 10, trace = 1),
 			n.restarts = 2, n.sim = 20000, use.multicore = FALSE, rseed = 443, n = 25)
-	
+
 	conopt = list()
 	conopt$fn  = 243.813
 	conopt$iter = 33
 	conopt$nfun = NA
 	conopt$elapsed = 0.041
-	conopt$pars = c(-0.0117133872042326,	0.627138691757704,	-0.471025867741051,	-0.164419761338935,	-0.0315460712487934,	
-			-0.12718981058582,	-0.540049624346613,	0.600346770449059,	0.29796281847713,	-0.740960572770077,	0.972512148478245,	
-			-0.870858895858346,	0.84178885636396,	-0.182471994739506,	0.603293664844919,	0.0834172554171806,	0.51317309921937,	
-			0.260639996237799,	-0.0972877803105543,	-0.979882559381314,	-0.64809471648373,	-0.722351411610064,	0.847184430059647,	
-			0.514683899757428,	-0.574607272207711, 0.114609211815613,	-0.748168886860133,	-0.379763612890494,	0.743271243797936,	
-			0.846784034469756,	0.220425955966718,	0.839147591392778,	-0.613810163641104,	-0.499794531840362,	-0.199680552951248,	
-			-0.105141937435843,	-0.434753057357539,	-0.127562956191463,	-0.895691740627038,	0.574257349984438,	-0.967631920158332,	
-			-0.0243647398873149,	0.959445715727407,	-0.517406241891138,	0.197677956191858,	0.503867654081605,	0.286619450971711,	
-			0.522509289901788,	0.474911361600545,	-0.768915699421274, -0.993341595387613,	-0.21665728244143,	-0.796187308516752,	-0.648470508368975,	
-			0.531000606737778,	0.967075565826839,	-0.0646353084836963,	0.512660548728168,	-0.813279524362711,	0.641174786133487,	
-			0.207762590603952,	-0.229335044471304,	-0.524518077390237,	-0.405512363446903,	0.55341236880543,	0.23818066376044,	
-			0.857939234263016,	-0.107381147942665,	0.850191665834437,	0.0274516931378701,	0.571043453369507,	-0.629331175510656,	
+	conopt$pars = c(-0.0117133872042326,	0.627138691757704,	-0.471025867741051,	-0.164419761338935,	-0.0315460712487934,
+			-0.12718981058582,	-0.540049624346613,	0.600346770449059,	0.29796281847713,	-0.740960572770077,	0.972512148478245,
+			-0.870858895858346,	0.84178885636396,	-0.182471994739506,	0.603293664844919,	0.0834172554171806,	0.51317309921937,
+			0.260639996237799,	-0.0972877803105543,	-0.979882559381314,	-0.64809471648373,	-0.722351411610064,	0.847184430059647,
+			0.514683899757428,	-0.574607272207711, 0.114609211815613,	-0.748168886860133,	-0.379763612890494,	0.743271243797936,
+			0.846784034469756,	0.220425955966718,	0.839147591392778,	-0.613810163641104,	-0.499794531840362,	-0.199680552951248,
+			-0.105141937435843,	-0.434753057357539,	-0.127562956191463,	-0.895691740627038,	0.574257349984438,	-0.967631920158332,
+			-0.0243647398873149,	0.959445715727407,	-0.517406241891138,	0.197677956191858,	0.503867654081605,	0.286619450971711,
+			0.522509289901788,	0.474911361600545,	-0.768915699421274, -0.993341595387613,	-0.21665728244143,	-0.796187308516752,	-0.648470508368975,
+			0.531000606737778,	0.967075565826839,	-0.0646353084836963,	0.512660548728168,	-0.813279524362711,	0.641174786133487,
+			0.207762590603952,	-0.229335044471304,	-0.524518077390237,	-0.405512363446903,	0.55341236880543,	0.23818066376044,
+			0.857939234263016,	-0.107381147942665,	0.850191665834437,	0.0274516931378701,	0.571043453369507,	-0.629331175510656,
 			-0.0962423162171412,	-0.713834491989006,	0.280348229724225)
 	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
 					round(ans$outer.iter, 0L),
@@ -604,12 +604,12 @@ It has one linear equality constraint and variable bounds. See Kaplan and Knowle
 		}
 		F
 	}
-	
-	ans = gosolnp(pars  = NULL, fixed = NULL, fun = .perm, eqfun = NULL, eqB = NULL, LB = rep(-4, 4), UB = rep(4, 4), 
-			control = list(outer.iter = 25, trace = 1, tol = 1e-9), distr = rep(1, 4), distr.opt = list(), 
+
+	ans = gosolnp(pars  = NULL, fixed = NULL, fun = .perm, eqfun = NULL, eqB = NULL, LB = rep(-4, 4), UB = rep(4, 4),
+			control = list(outer.iter = 25, trace = 1, tol = 1e-9), distr = rep(1, 4), distr.opt = list(),
 			n.restarts = 6, n.sim = 20000, use.multicore = FALSE, rseed = 99, n = 4, b =0.5)
 
-	
+
 	bt = data.frame( solnp = rbind(round(ans$values[length(ans$values)], 5L),
 					round(ans$outer.iter, 0L),
 					round(ans$convergence, 0L),
