@@ -77,13 +77,19 @@ solnp = function(pars, fun, eqfun = NULL, eqB = NULL, ineqfun = NULL, ineqLB = N
 	# do parameter and LB/UB checks
 	check1 = .checkpars(pars, LB, UB, .solnpenv)
 	
-	# .solnp_LB and .solnp_UB assigned
+	# .LB and .UB assigned
+	
+	.LB = get(".LB", envir = .solnpenv)
+	.UB = get(".UB", envir = .solnpenv)
+	
+	
 	if( !is.null(.LB) || !is.null(.UB) ) ind[10] = 1
 	
 	# do function checks and return starting value
 	funv = .checkfun(pars, fun, .solnpenv, ...)
 	#.solnp_fun assigned
-	
+	.solnp_fun = get(".solnp_fun", envir = .solnpenv)
+		
 	# Analytical Gradient Functionality not yet implemented in subnp function
 	
 	# gradient and hessian checks
@@ -131,12 +137,17 @@ solnp = function(pars, fun, eqfun = NULL, eqB = NULL, ineqfun = NULL, ineqLB = N
 		.ineqUB = NULL
 	}
 	# .solnp_ineqfun and .solnp_ineqjac assigned
-	# .solnp_ineqLB and .solnp_ineqUB assigned
+	# .ineqLB and .ineqUB assigned
+	.solnp_ineqfun = get(".solnp_ineqfun", envir = .solnpenv)
+	.ineqLB = get(".ineqLB", envir = .solnpenv)
+	.ineqUB = get(".ineqUB", envir = .solnpenv)
+
 
 	# equality checks
 	if(!is.null(eqfun)){
 		eqv 	= .checkeq(pars, eqfun, eqB, .solnpenv, ...)
 		ind[7] 	= 1
+		.eqB = get(".eqB", envir = .solnpenv)
 		neq 	= length(.eqB)
 		ind[8] 	= neq
 		#if(!is.null(eqgrad)){
@@ -159,6 +170,7 @@ solnp = function(pars, fun, eqfun = NULL, eqB = NULL, ineqfun = NULL, ineqLB = N
 	}
 	# .solnp_eqfun(pars, ...) and .solnp_eqjac(pars, ...) assigned
 	# .solnp_eqB assigned
+	.solnp_eqfun = get(".solnp_eqfun", envir = .solnpenv)
 
 	if( ind[ 10 ] || ind [ 4 ]) ind[ 11 ] = 1
 		
