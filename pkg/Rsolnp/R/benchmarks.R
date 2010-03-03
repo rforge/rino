@@ -375,7 +375,6 @@ from Problem 43 of Hock and Schittkowski (1981).")
 # interface for matlab
 .rachevratio = function()
 {
-        ## to avoid annoying NOTEs in R CMD check we need to "get" dji30ret
 	dj30 = as.matrix(get(data(dji30ret)))
 
 	.VaR = function(x, alpha = 0.05)
@@ -451,7 +450,7 @@ It has one linear equality constraint and variable bounds. See Rachev (2000) for
 
 .kapparatio = function()
 {
-        ## to avoid annoying NOTEs in R CMD check we need to "get" dji30ret
+
 	dj30 = as.matrix(get(data(dji30ret)))
 
 	.kappa = function(port, r, n)
