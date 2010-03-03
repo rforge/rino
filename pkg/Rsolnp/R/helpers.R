@@ -92,8 +92,8 @@
 .safefun = function(pars, fun, ...){
 	v  = fun(pars, ...)
 	if(is.na(v) | !is.finite(v) | is.nan(v)) {
-	warning(paste("\nsolnp-->warning: ", v , " detected in function call...check your function\n", sep = ""), immediate. = TRUE)
-	v = 1e10
+		warning(paste("\nsolnp-->warning: ", v , " detected in function call...check your function\n", sep = ""), immediate. = FALSE)
+		v = 1e24
 	}
 	v
 }
