@@ -13,7 +13,7 @@ citEntry(entry="Manual",
          year         = year,
          note         = note,
          textVersion = 
-         paste("Alexiaos Ghalanos and Stefan Theussl",
+         paste("Alexios Ghalanos and Stefan Theussl",
                sprintf("(%s).", year),
                "Rsolnp: General Non-linear Optimization Using Augmented Lagrange Multiplier Method.",
 	       note),
