@@ -1,3 +1,9 @@
+2010-03-10  Stefan Theussl  <stefan.theussl@wu.ac.at>
+
+	* DESCRIPTION (Version): New version is 1.0-2
+	* Correction to default solver control parameters
+
+
 2010-03-05  Stefan Theussl  <stefan.theussl@wu.ac.at>
 
 	* DESCRIPTION (Version): New version is 1.0-1
