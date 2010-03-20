@@ -152,7 +152,7 @@ In using choices (2) and (3) for \code{distr}, the \code{distr.opt} list must be
 	UB = rep(1,  3*n)
 	eqB = rep(1, n)
 	ans = gosolnp(pars  = NULL, fixed = NULL, fun = gofn, eqfun = goeqfn, eqB = eqB, LB = LB, UB = UB, 
-			control = list(), distr = rep(1, length(LB)), distr.opt = list(outer.iter = 10, trace = 1), 
+			control = list(outer.iter = 10, trace = 1), distr = rep(1, length(LB)), distr.opt = list(), 
 			n.restarts = 2, n.sim = 20000, use.multicore = FALSE, rseed = 443, n = 25)
 	# should get a function value around 243.813
 }
