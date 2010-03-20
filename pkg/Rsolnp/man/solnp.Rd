@@ -78,10 +78,10 @@ transforming the inequality into an equality constraint.}
 \item{rho}{Penalty parameter (default 1) }
 \item{outer.iter}{Maximum number of major (outer) iterations (default 400)}
 \item{inner.iter}{Maximum number of minor (inner) iterations (default 800)}
-\item{delta}{Relative step size in forward difference evaluation (default 1.0e-8)}
-\item{tol}{Tolerance on feasibility and optimality (default 1e-6)}
+\item{delta}{Relative step size in forward difference evaluation (default 1.0e-7)}
+\item{tol}{Tolerance on feasibility and optimality (default 1e-8)}
 \item{trace}{The value of the objective function and the parameters is printed at every
-major iteration (default 0)}
+major iteration (default 1)}
 }}
 \references{
 Y.Ye, \emph{Interior algorithms for linear, quadratic, and linearly constrained non 
