@@ -4,10 +4,10 @@
 
 ## where to put source files and headers
 URL="http://www.coin-or.org/download/source/Bonmin/"
-latest="Bonmin-0.99.3.tgz"
+latest="Bonmin-1.3.3.tgz"
 DESTINATION=../src/Bonmin
-thirdparty_A=thirdparty_libs_A.gpg
-thirdparty_B=thirdparty_libs_B.gpg
+#thirdparty_A=thirdparty_libs_A.gpg
+#thirdparty_B=thirdparty_libs_B.gpg
 
 ## --------------------------------------------
 ## Usage
@@ -80,11 +80,11 @@ if [[ -z "${sources}" && $integrate ]] ; then
     exit 1
 fi
 
-if [[ -z "${thirdparty_A}" && -z "${thirdparty_B}" && $third ]] ; then
-    echo "$0: No third party libs found!"
-    usage 1
-    exit 1
-fi
+#if [[ -z "${thirdparty_A}" && -z "${thirdparty_B}" && $third ]] ; then
+#    echo "$0: No third party libs found!"
+#    usage 1
+#    exit 1
+#fi
 
 
 ## --------------------------------------------
@@ -140,13 +140,18 @@ if [[ $clean ]] ; then
 fi
 
 if [[ $third=true ]] ; then
-    if [[ -d $DESTINATION/ThirdParty/HSL ]] ; then
-	gpg -o $DESTINATION/ThirdParty/HSL/ma27ad.f thirdparty_libs_A.gpg
-	gpg -o $DESTINATION/ThirdParty/HSL/mc19ad.f thirdparty_libs_B.gpg
-
+    if [[ -d $DESTINATION/ThirdParty/Mumps ]] ; then
+	cd $DESTINATION/ThirdParty/Mumps && ./get.Mumps
+#	gpg -o $DESTINATION/ThirdParty/HSL/ma27ad.f thirdparty_libs_A.gpg
+#	gpg -o $DESTINATION/ThirdParty/HSL/mc19ad.f thirdparty_libs_B.gpg
     fi
+        if [[ -d $DESTINATION/ThirdParty/Metis ]] ; then
+	cd $DESTINATION/ThirdParty/Metis && ./get.Metis
+#	gpg -o $DESTINATION/ThirdParty/HSL/ma27ad.f thirdparty_libs_A.gpg
+#	gpg -o $DESTINATION/ThirdParty/HSL/mc19ad.f thirdparty_libs_B.gpg
+    fi
+
 fi
-             
 
 echo "done."
 
