@@ -53,7 +53,9 @@ constraints.
 (Optional) The control list of optimization parameters. See below for details.
 }
   \item{\dots}{
-(Optional) Additional parameters passed to the main, equality or inequality functions
+(Optional) Additional parameters passed to the main, equality or inequality functions. Note
+that the main and constraint functions must take the exact same arguments, irrespective of
+whether they are used by all of them.
 }
 }
 \details{
