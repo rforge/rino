@@ -1,3 +1,10 @@
+2010-06-27  Alexios Ghalanos <alexios@4dscape.com>
+
+	* DESCRIPTION (Version): New version is 1.0-4
+	* Corrections to subnp function when single parameter passed
+	to solver (effectively added dimension arguments to 'diag'
+	function when updating the Hessian).
+
 2010-03-20  Alexios Ghalanos <alexios@4dscape.com>
 
 	* DESCRIPTION (Version): New version is 1.0-3
