@@ -119,6 +119,7 @@ In using choices (2) and (3) for \code{distr}, the \code{distr.opt} list must be
 \code{sd} as subcomponents for those parameters not using the uniform (the examples section hopefully clarifies the usage).
 }
 \examples{
+\dontrun{
 # Distributions of Electrons on a Sphere Problem
 # Given n electrons, find the equilibrium state distribution (of minimal Coulomb potential) 
 # of the electrons positioned on a conducting sphere. This model is from the COPS benchmarking suite.
@@ -155,5 +156,6 @@ In using choices (2) and (3) for \code{distr}, the \code{distr.opt} list must be
 			control = list(outer.iter = 100, trace = 1), distr = rep(1, length(LB)), distr.opt = list(), 
 			n.restarts = 2, n.sim = 20000, use.multicore = FALSE, rseed = 443, n = 25)
 	# should get a function value around 243.813
+}
 }
 \keyword{optimize}
