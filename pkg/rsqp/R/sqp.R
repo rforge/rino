@@ -17,10 +17,20 @@
 
 sqp = function(pars, fun, grad = NULL, hess = NULL, ineqfun = NULL, gradineq = NULL, 
 		ineqLB = NULL,  ineqUB = NULL, eqfun = NULL, gradeq = NULL, eqB = NULL, 
-		LB = NULL, UB = NULL,  control = list(maxiter = 100, epsg = 1e-6, epsu = 1e-10, 
-				du = 1e-9, optimest = NULL, slope = 0.1, 	trace = 0), ...)
+		LB = NULL, UB = NULL,  control = list(maxiter = 100, tol = 1e-6, trace = 0, 
+				initiate.with.solnp = TRUE, solnp.iter = 2), ...)
 {
 	
+	# make one pass from solnp to get improved parameters:
+	if(!is.null(control$tol)) tmptol = control$tol else tmptol = 1e-6
+	if(!is.null(control$solnp.iter)) solnp.iter = control$solnp.iter else solnp.iter = 2
+	if(is.null(control$initiate.with.solnp)) initiate.with.solnp = FALSE else initiate.with.solnp = control$initiate.with.solnp
+	if(initiate.with.solnp){ 
+		tmps = try(solnp( pars = pars, fun = fun, ineqfun = ineqfun, ineqLB = ineqLB, ineqUB = ineqUB,
+			eqfun = eqfun, eqB = eqB, LB = LB, UB = UB, control = list(outer.iter = solnp.iter, 
+					tol = tmptol, trace = 0), ...), silent = TRUE )
+	if( !inherits(tmps, "try-error") ) pars = tmps$pars
+	}
 	tic = Sys.time()
 	.sqpenv <- environment()
 	
@@ -158,7 +168,7 @@ sqp = function(pars, fun, grad = NULL, hess = NULL, ineqfun = NULL, gradineq = N
 	
 	## Choose an initial lambda (pars are provided by the caller)
 	
-	lambda = 100 * .ones(ncon, 1)
+	lambda = 2 * .ones(ncon, 1)
 	qp_iter = 1
 	alpha = 1	
 	info = 0
@@ -167,23 +177,23 @@ sqp = function(pars, fun, grad = NULL, hess = NULL, ineqfun = NULL, gradineq = N
 		## Check convergence.
 		if(neq>0) lambda_eq = lambda[1:neq] else lambda_e = NULL
 		
-		if(nineq>0) lambda_ineq = lambda[(neq+1):ncon] else lambda_ineq = NULL
+		if(nineqlb>0) lambda_ineq = lambda[(neq+1):ncon] else lambda_ineq = NULL
 		conv = c(eqv, ineqv)
 		
 		t0 = .vnorm (gradv - t(A)%*%lambda)
 		if(neq>0) t1 = .vnorm (eqv) else t1 = NULL
-		if(nineq>0) t2 = all (ineqv >= 0) else t2 = 0
-		if(nineq>0) t3 = all (lambda_ineq >= 0) else t3 = 0
+		if(nineqlb>0) t2 = all (ineqv >= 0) else t2 = 0
+		if(nineqlb>0) t3 = all (lambda_ineq >= 0) else t3 = 0
 		t4 = .vnorm(lambda*conv)
 		if (t2 && t3 && max (c(t0,t1,t4) < tol)) break()
 		## Compute search direction p by solving QP.
-		if(neq>0) g = -eqv else g = NULL
-		if(nineq>0) d = -ineqv else d = NULL
+		if(neq > 0) g = -eqv else g = NULL
+		if(nineqlb > 0) d = -ineqv else d = NULL
 		Amat = rbind(eqjacv, ineqjacv)
 		bvec = c(g, d)
 		solqp = try(solve.QP(Dmat = hessv, dvec = -gradv, Amat = t(Amat), bvec = bvec, meq = ind[8]),
 				silent = TRUE)
-		if(inherits(solqp,"try-error")) 
+		if(inherits(solqp,"try-error"))
 			stop("\nsqp-->error: qp part infeasible\n", call. = FALSE)
 
 		p = solqp$solution
@@ -248,12 +258,12 @@ sqp = function(pars, fun, grad = NULL, hess = NULL, ineqfun = NULL, gradineq = N
 		}
 		pars = parsnew
 		funv = funvnew
-		gradv = gradvnew;
+		gradv = gradvnew
 		
-		eqv = eqvnew;
-		eqjacv = eqjacvnew;
-		ineqv = ineqvnew;
-		ineqjacv = ineqjacvnew;
+		eqv = eqvnew
+		eqjacv = eqjacvnew
+		ineqv = ineqvnew
+		ineqjacv = ineqjacvnew
 		A = Anew
 		iter = iter + 1
 		if(trace) .report(iter, .qp_iter, funv)
