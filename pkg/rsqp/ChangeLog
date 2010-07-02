@@ -1,0 +1,7 @@
+2010-07-02  Alexios Ghalanos <alexios@4dscape.com>
+	* Corrections to original problem of sqp.R. Now runs basic problems.
+	* Added pre-estimation step to obtain warm parameters from solnp iteration.
+	* ToDo: 
+	* 1. Parameter Scaling
+	* 2. More control over step function and adaptive adjustment.
+	
