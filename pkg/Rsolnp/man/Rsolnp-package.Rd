@@ -1,7 +1,6 @@
 \name{Rsolnp-package}
 \alias{Rsolnp-package}
 \alias{Rsolnp}
-\docType{Rsolnp}
 \title{The Rsolnp package}
 \description{
 The Rsolnp package implements Y.Ye's general nonlinear augmented Lagrange multiplier
