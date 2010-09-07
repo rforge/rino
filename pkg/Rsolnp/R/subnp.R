@@ -522,6 +522,7 @@
 	delta = ctrl[ 3 ]
 	tol   = ctrl[ 4 ]
 	trace = ctrl[ 5 ]
+	use.multicore = ctrl[ 6 ]
 	# [1] length of pars
 	# [2] has function gradient?
 	# [3] has hessian?
@@ -591,25 +592,25 @@
 			# [nineq x (nineq+np) ]
 			a = cbind( -diag(nineq), matrix(0, ncol = np, nrow = nineq) )
 			
-			a = Matrix( a )
+			a = as.matrix( a )
 		} else {
 			# [ (neq+nineq) x (nineq+np)]
 			a = rbind( cbind( 0 * .ones(neq, nineq), matrix(0, ncol = np, nrow = neq) ), 
 					cbind( -diag(nineq), matrix(0, ncol = np, nrow = nineq) ) )
 			
-			a = Matrix( a )
+			a = as.matrix( a )
 		}
 	}
 	if( ind[7] && !ind[4] ) {
 		a = .zeros(neq, np)
 		
-		a = Matrix( a )
+		a = as.matrix( a )
 	}
 	
 	if( !ind[7] && !ind[4] ) {
 		a = .zeros(1, np)
 		
-		a = Matrix( a )
+		a = as.matrix( a )
 	}
 	
 	# gradient
@@ -621,8 +622,8 @@
 		# constraint [5 0 11 3x1]
 		# gradient routine
 		if( use.multicore ){
-			tmpm = mclapply( 1:np, FUN = function(i) fdgrad(i, p0, delta, np, vscale, constraint, j, 
-								nineq, npic, nc, .solnp_fun, .solnp_eqfun, .solnp_ineqeqfun, env, ...) )
+			tmpm = mclapply( 1:np, FUN = function(i) .fdgrad(i, p0, delta, np, vscale, constraint, j, 
+								nineq, npic, nc, .solnp_fun, .solnp_eqfun, .solnp_ineqfun, .env, ...) )
 			
 			for( i in 1:np ){
 				g[ nineq + i ]   = tmpm[[i]]$g
@@ -630,8 +631,8 @@
 			}
 			
 		} else{
-			tmpm = lapply( 1:np, FUN = function(i) fdgrad(i, p0, delta, np, vscale, constraint, j, 
-								nineq, npic, nc, .solnp_fun, .solnp_eqfun, .solnp_ineqeqfun, env, ...) )
+			tmpm = lapply( 1:np, FUN = function(i) .fdgrad(i, p0, delta, np, vscale, constraint, j, 
+								nineq, npic, nc, .solnp_fun, .solnp_eqfun, .solnp_ineqfun, .env, ...) )
 			
 			for( i in 1:np ){
 				g[ nineq + i ]   = tmpm[[i]]$g
@@ -786,8 +787,8 @@
 		if( ch > 0 ) {
 			
 			if( use.multicore ){
-				tmpm = mclapply( 1:np, FUN = function(i) fdgrad(i, p, delta, np, vscale, constraint, j, 
-									nineq, npic, nc, .solnp_fun, .solnp_eqfun, .solnp_ineqeqfun, env, ...) )
+				tmpm = mclapply( 1:np, FUN = function(i) .fdgrad(i, p, delta, np, vscale, constraint, j, 
+									nineq, npic, nc, .solnp_fun, .solnp_eqfun, .solnp_ineqfun, .env, ...) )
 				
 				for( i in 1:np ){
 					g[ nineq + i ]   = tmpm[[i]]$g
@@ -811,8 +812,8 @@
 				}
 				
 			} else{
-				tmpm = lapply( 1:np, FUN = function(i) fdgrad(i, p0, delta, np, vscale, constraint, j, 
-									nineq, npic, nc, .solnp_fun, .solnp_eqfun, .solnp_ineqeqfun, env, ...) )
+				tmpm = lapply( 1:np, FUN = function(i) .fdgrad(i, p0, delta, np, vscale, constraint, j, 
+									nineq, npic, nc, .solnp_fun, .solnp_eqfun, .solnp_ineqfun, .env, ...) )
 				
 				for( i in 1:np ){
 					
@@ -1057,7 +1058,7 @@
 }
 
 .fdgrad = function(i, p, delta, np, vscale, constraint, j, nineq, npic, nc, .solnp_fun, 
-		.solnp_eqfun, .solnp_ineqeqfun, env, ...)
+		.solnp_eqfun, .solnp_ineqfun, .env, ...)
 {
 	ans = list()
 	px = p
