@@ -30,7 +30,7 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 		ineqUB = NULL, LB = NULL, UB = NULL, control = list(), distr = rep(1, length(LB)), distr.opt = list(), 
 		n.restarts = 1, n.sim = 20000, use.multicore = FALSE, rseed = NULL, ...)
 {
-	if(is.null(tolower(control$trace))) trace = FALSE else trace = as.logical(control$trace)
+	if(is.null(control$trace)) trace = FALSE else trace = as.logical(control$trace)
 	
 	# use a seed to initialize random no. generation
 	if(is.null(rseed)) rseed = as.numeric(Sys.time()) else rseed = as.integer(rseed)
@@ -80,7 +80,7 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 	
 	# initiate random search
 	spars = .randpars(pars = pars, fixed = fixed, fun = fun, eqfun = eqfun, eqB = eqB,  
-			ineqfun = ineqfun, ineqLB - ineqLB, ineqUB = ineqUB, LB = LB, UB = UB, 
+			ineqfun = ineqfun, ineqLB = ineqLB, ineqUB = ineqUB, LB = LB, UB = UB, 
 			distr = distr, distr.opt = distr.opt, n.restarts = n.restarts, n.sim = n.sim,
 			trace = trace, rseed = rseed,  ...)
 	
