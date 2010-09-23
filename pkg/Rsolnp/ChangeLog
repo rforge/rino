@@ -2,6 +2,8 @@
 
 	* DESCRIPTION (Version): New version is 1.0-6
 	* Correction to gosolnp bugs introduced in 1.0-5.
+	* Parameter vector (pars) now retains names across calls to fun, eqfun and ineqfun
+	(previously these were removed).
 
 2010-09-03  Alexios Ghalanos <alexios@4dscape.com>
 
