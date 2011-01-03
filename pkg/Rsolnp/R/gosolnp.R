@@ -78,7 +78,7 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 	spars = .randpars(pars = pars, fixed = fixed, fun = fun, eqfun = eqfun, eqB = eqB,  
 			ineqfun = ineqfun, ineqLB = ineqLB, ineqUB = ineqUB, LB = LB, UB = UB, 
 			distr = distr, distr.opt = distr.opt, n.restarts = n.restarts, n.sim = n.sim,
-			trace = trace, rseed = rseed, xnames, ...)
+			trace = trace, rseed = rseed, xnames, parallel = parallel, parallel.control = parallel.control, ...)
 	
 	# initiate solver restarts
 	if(trace) cat("\ngosolnp-->Starting Solver\n")
@@ -131,6 +131,7 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 				} 
 				return( ans )
 			})
+			sfStop()
 		}
 	} else{
 		solution = lapply(1:n.restarts, FUN = function(i){
@@ -166,7 +167,8 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 }
 
 .randpars = function(pars, fixed, fun, eqfun, eqB,  ineqfun, ineqLB, ineqUB, LB, UB, 
-		distr, distr.opt, n.restarts, n.sim, trace = TRUE, rseed, xnames, ...)
+		distr, distr.opt, n.restarts, n.sim, trace = TRUE, rseed, xnames, parallel = FALSE,
+		parallel.control = list(pkg = c("multicore", "snowfall"), cores = 2), ...)
 {
 	if(trace) cat("\ngosolnp-->Calculating Random Initialization Parameters...")
 	tmpenvir <- environment()
@@ -240,7 +242,40 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 	
 	# evaluate function value
 	if(trace) cat("\ngosolnp-->Evaluating Objective Function with Random Initialization Parameters...")
-	evfun = apply(rndpars, 1, FUN = function(x) .safefun(x, fun, .env = tmpenvir, ...))
+	if( parallel ){
+		nx = dim(rndpars)[1]
+		os = .Platform$OS.type
+		if(is.null(parallel.control$pkg)){
+			if( os == "windows" ) parallel.control$pkg = "snowfall" else parallel.control$pkg = "multicore"
+			if( is.null(parallel.control$cores) ) parallel.control$cores = 2
+		} else{
+			mtype = match(tolower(parallel.control$pkg[1]), c("multicore", "snowfall"))
+			if(is.na(mtype)) stop("\nParallel Package type not recognized in parallel.control\n")
+			parallel.control$pkg = tolower(parallel.control$pkg[1])
+			if( os == "windows" && parallel.control$pkg == "multicore" ) stop("\nmulticore not supported on windows O/S\n")
+			if( is.null(parallel.control$cores) ) parallel.control$cores = 2 else parallel.control$cores = as.integer(parallel.control$cores[1])
+		}
+		if( parallel.control$pkg == "multicore" ){
+			
+			if(!exists("mclapply")){
+				require('multicore')
+			}
+				evfun = mclapply(1:nx, FUN = function(i) .safefun(rndpars[i, ], fun, .env = tmpenvir, ...), 
+						mc.cores = parallel.control$cores)
+				evfun = as.numeric( unlist(evfun) )
+		} else{
+			if(!exists("sfLapply")){
+				require('snowfall')
+			}
+			sfInit(parallel = TRUE, cpus = parallel.control$cores)
+			sfExport("rndpars", "fun", "tmpenvir", "...", local = TRUE)
+			evfun = sfLapply(as.list(1:nx), fun = function(i) Rsolnp:::.safefun(rndpars[i, ], fun, .env = tmpenvir, ...))
+			sfStop()
+			evfun = as.numeric( unlist(evfun) )
+		}
+	} else{
+		evfun = apply(rndpars, 1, FUN = function(x) .safefun(x, fun, .env = tmpenvir, ...))
+	}
 	if(trace) cat("ok!\n")
 	
 	if(trace) cat("\ngosolnp-->Sorting and Choosing Best Candidates for starting Solver...")
