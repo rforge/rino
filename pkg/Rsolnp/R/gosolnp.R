@@ -28,19 +28,14 @@
 
 gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ineqfun = NULL, ineqLB = NULL, 
 		ineqUB = NULL, LB = NULL, UB = NULL, control = list(), distr = rep(1, length(LB)), distr.opt = list(), 
-		n.restarts = 1, n.sim = 20000, use.multicore = FALSE, rseed = NULL, ...)
+		n.restarts = 1, n.sim = 20000, parallel = FALSE, 
+		parallel.control = list(pkg = c("multicore", "snowfall"), cores = 2), rseed = NULL, ...)
 {
 	if( !is.null(pars) ) xnames = names(pars) else xnames = NULL
 	if(is.null(control$trace)) trace = FALSE else trace = as.logical(control$trace)
 	
 	# use a seed to initialize random no. generation
 	if(is.null(rseed)) rseed = as.numeric(Sys.time()) else rseed = as.integer(rseed)
-	
-	# check mclapply
-	if(use.multicore){
-		if(!exists("mclapply")) stop("\ngosolnp-->error: to use multicore you must manually load the package\n", 
-						call. = FALSE)
-	}
 	
 	# function requires both upper and lower bounds
 	if(is.null(LB)) stop("\ngosolnp-->error: the function requires lower parameter bounds\n", call. = FALSE)
@@ -88,20 +83,55 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 	# initiate solver restarts
 	if(trace) cat("\ngosolnp-->Starting Solver\n")
 	solution = vector(mode = "list", length = n.restarts)
-	if(use.multicore){
-		solution = mclapply(1:n.restarts, FUN = function(i) {
-		xx =spars[i,]
-		names(xx) = xnames
-		ans = try(solnp(pars = xx, fun = fun, eqfun = eqfun, eqB = eqB, ineqfun = ineqfun, ineqLB = ineqLB, ineqUB = ineqUB, LB = LB, UB = UB, control = control, ...),
-				silent = TRUE)
-		if(inherits(ans, "try-error")){
-			ans = list()
-			ans$values = 1e10
-			ans$convergence = 0
-			ans$pars = rep(NA, length(xx))
-		} 
-		return( ans )
-	})
+	if( parallel ){
+		os = .Platform$OS.type
+		if(is.null(parallel.control$pkg)){
+			if( os == "windows" ) parallel.control$pkg = "snowfall" else parallel.control$pkg = "multicore"
+			if( is.null(parallel.control$cores) ) parallel.control$cores = 2
+		} else{
+			mtype = match(tolower(parallel.control$pkg[1]), c("multicore", "snowfall"))
+			if(is.na(mtype)) stop("\nParallel Package type not recognized in parallel.control\n")
+			parallel.control$pkg = tolower(parallel.control$pkg[1])
+			if( os == "windows" && parallel.control$pkg == "multicore" ) stop("\nmulticore not supported on windows O/S\n")
+			if( is.null(parallel.control$cores) ) parallel.control$cores = 2 else parallel.control$cores = as.integer(parallel.control$cores[1])
+		}
+		if( parallel.control$pkg == "multicore" ){
+			if(!exists("mclapply")){
+				require('multicore')
+			}
+			solution = mclapply(1:n.restarts, FUN = function(i) {
+				xx =spars[i,]
+				names(xx) = xnames
+				ans = try(solnp(pars = xx, fun = fun, eqfun = eqfun, eqB = eqB, ineqfun = ineqfun, ineqLB = ineqLB, ineqUB = ineqUB, LB = LB, UB = UB, control = control, ...),
+						silent = TRUE)
+				if(inherits(ans, "try-error")){
+					ans = list()
+					ans$values = 1e10
+					ans$convergence = 0
+					ans$pars = rep(NA, length(xx))
+				} 
+				return( ans )
+			}, mc.cores = parallel.control$cores)
+		} else{
+			if(!exists("sfLapply")){
+				require('snowfall')
+			}
+			sfInit(parallel=TRUE, cpus = parallel.control$cores)
+			sfExport("spars", "xnames", "fun", "eqfun", "eqB", "ineqfun","ineqLB", "ineqUB", "LB", "UB", "control", "...", local = TRUE)
+			solution = sfLapply(as.list(1:n.restarts), fun = function(i) {
+				xx = spars[i,]
+				names(xx) = xnames
+				ans = try(Rsolnp::solnp(pars = xx, fun = fun, eqfun = eqfun, eqB = eqB, ineqfun = ineqfun, ineqLB = ineqLB, ineqUB = ineqUB, LB = LB, UB = UB, control = control, ...),
+						silent = TRUE)
+				if(inherits(ans, "try-error")){
+					ans = list()
+					ans$values = 1e10
+					ans$convergence = 0
+					ans$pars = rep(NA, length(xx))
+				} 
+				return( ans )
+			})
+		}
 	} else{
 		solution = lapply(1:n.restarts, FUN = function(i){
 		xx = spars[i,]
