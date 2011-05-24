@@ -203,7 +203,7 @@
 				if(inherits(y, "try-error")){
 					p = p * vscale[ (neq + 2):(nc + np + 1) ]  # unscale the parameter vector
 					if( nc > 0 ) {
-						y = vscale[ 1 ] * y / vscale[ 2:(nc + 1) ] # unscale the lagrange multipliers
+						y = 0 # unscale the lagrange multipliers
 					}
 					hessv = vscale[ 1 ] * hessv / (vscale[ (neq + 2):(nc + np + 1) ] %*% t(vscale[ (neq + 2):(nc + np + 1) ]) )
 					ans = list(p = p, y = y, hessv = hessv, lambda = lambda)
@@ -348,7 +348,7 @@
 			if(inherits(cz, "try-error")){
 				p = p * vscale[ (neq + 2):(nc + np + 1) ]  # unscale the parameter vector
 				if( nc > 0 ) {
-					y = vscale[ 1 ] * y / vscale[ 2:(nc + 1) ] # unscale the lagrange multipliers
+					y = 0 # unscale the lagrange multipliers
 				}
 				hessv = vscale[ 1 ] * hessv / (vscale[ (neq + 2):(nc + np + 1) ] %*% t(vscale[ (neq + 2):(nc + np + 1) ]) )
 				ans = list(p = p, y = y, hessv = hessv, lambda = lambda)
@@ -359,7 +359,7 @@
 			if(inherits(cz, "try-error")){
 				p = p * vscale[ (neq + 2):(nc + np + 1) ]  # unscale the parameter vector
 				if( nc > 0 ) {
-					y = vscale[ 1 ] * y / vscale[ 2:(nc + 1) ] # unscale the lagrange multipliers
+					y = 0 # unscale the lagrange multipliers
 				}
 				hessv = vscale[ 1 ] * hessv / (vscale[ (neq + 2):(nc + np + 1) ] %*% t(vscale[ (neq + 2):(nc + np + 1) ]) )
 				ans = list(p = p, y = y, hessv = hessv, lambda = lambda)
