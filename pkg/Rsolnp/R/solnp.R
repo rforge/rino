@@ -245,7 +245,7 @@ solnp = function(pars, fun, eqfun = NULL, eqB = NULL, ineqfun = NULL, ineqLB = N
 				ctrl = .subnp_ctrl, .env = .solnpenv, ...)
 		if(get(".solnp_errors", envir =  .solnpenv) == 1){
 			maxit = .solnp_iter
-		}		
+		}
 		p  = res$p
 		lambda  = res$y
 		hessv  = res$hessv

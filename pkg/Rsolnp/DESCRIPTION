@@ -1,8 +1,8 @@
 Package: Rsolnp
 Type: Package
 Title: General Non-linear Optimization
-Version: 1.0-9
-Date: 2011-05-19
+Version: 1.1
+Date: 2011-07-06
 Author: Alexios Ghalanos and Stefan Theussl
 Maintainer: Alexios Ghalanos <alexios@4dscape.com>
 Depends: stats, truncnorm
