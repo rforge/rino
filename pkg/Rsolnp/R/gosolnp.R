@@ -459,21 +459,22 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, i
 	return(prtable)
 }
 
-# Logarithmic Lagrangian
+# Barrier Function
 
-.nalog = function(x){
-	x[x < 0] = 0
-	log(x)
+pclfn = function(x){
+	z=x
+	z[x<=0] = 0
+	z[x>0] = (0.9+z[x>0])^2
+	z
 }
 .lagrfun = function(pars, m, idx, fun, eqfun = NULL, eqB = 0, ineqfun = NULL, ineqLB = NULL, ineqUB = NULL, ...)
 {
 	fn = switch(idx,
 			"a" = fun(pars[1:m], ...),
-			"b" = fun(pars[1:m], ...) - pars[m+1]* sum( .nalog(-( c(ineqLB - ineqfun(pars[1:m], ...), ineqUB - ineqfun(pars[1:m], ...)) ) ) ),
+			"b" = fun(pars[1:m], ...) + pars[m+1]* sum( pclfn( c(ineqLB - ineqfun(pars[1:m], ...), ineqfun(pars[1:m], ...) - ineqUB) ) ),
 			"c" = fun(pars[1:m], ...) + sum( (eqfun(pars[1:m], ...) - eqB )^2 / pars[m+1]),
-			"d" = fun(pars[1:m], ...) + sum( (eqfun(pars[1:m], ...) - eqB )^2 / pars[m+1]) - pars[m+2]* sum( .nalog(-( c(ineqLB - ineqfun(pars[1:m], ...), ineqUB - ineqfun(pars[1:m], ...)) ) ) ))
+			"d" = fun(pars[1:m], ...) + sum( (eqfun(pars[1:m], ...) - eqB )^2 / pars[m+1]) + pars[m+2]* sum( pclfn( c(ineqLB - ineqfun(pars[1:m], ...), ineqfun(pars[1:m], ...) - ineqUB) ) ) )
 	return(fn)
-	
 }
 
 .distr1 = function(LB, UB, n)
