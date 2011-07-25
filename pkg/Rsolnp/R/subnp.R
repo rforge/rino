@@ -201,7 +201,7 @@
 				# TODO: Catch errors here
 				y = try( qr.solve( t( a %*% diag( as.numeric(dx) , length(dx), length(dx) ) ), dx * t(cx), tol = 1e-25 ), silent = TRUE)
 				if(inherits(y, "try-error")){
-					p = p * vscale[ (neq + 2):(nc + np + 1) ]  # unscale the parameter vector
+					p = p0 * vscale[ (neq + 2):(nc + np + 1) ]  # unscale the parameter vector
 					if( nc > 0 ) {
 						y = 0 # unscale the lagrange multipliers
 					}

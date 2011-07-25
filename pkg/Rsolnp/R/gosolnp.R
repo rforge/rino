@@ -180,9 +180,9 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, i
 		bestN = 15, eval.type = 1, ...)
 {
 	if( !is.null(pars) ) xnames = names(pars) else xnames = NULL
-	if(is.null(control$eval.type)) parmethod = 1 else parmethod = as.integer(min(abs(control$eval.type),2))
+	if(is.null(eval.type)) parmethod = 1 else parmethod = as.integer(min(abs(eval.type),2))
 	if(parmethod == 0) parmethod = 1
-	control$eval.type = NULL
+	eval.type = NULL
 	trace = FALSE
 	# use a seed to initialize random no. generation
 	if(is.null(rseed)) rseed = as.numeric(Sys.time()) else rseed = as.integer(rseed)
@@ -234,7 +234,9 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, i
 			rseed = rseed, trace = FALSE, xnames, parallel = parallel, parallel.control = parallel.control, ...))
 	return(spars)
 }
-# form a largangian before passing the parameters
+
+
+# form a barrier function before passing the parameters
 .randpars2 = function(pars, fixed, fun, eqfun, eqB,  ineqfun, ineqLB, ineqUB, LB, UB, 
 		distr, distr.opt, n.restarts, n.sim, rseed, trace = TRUE, xnames, parallel = FALSE,
 		parallel.control = list(pkg = c("multicore", "snowfall"), cores = 2), ...)
@@ -247,15 +249,15 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, i
 	R = NULL
 	if(!is.null(ineqfun) && is.null(eqfun) ){
 		idx = "b"
-		R = 1
+		R = 100
 	}
 	if( is.null(ineqfun) && !is.null(eqfun) ){
 		idx = "c"
-		R = 1
+		R = 100
 	}
 	if(!is.null(ineqfun) && !is.null(eqfun) ){
 		idx = "d"
-		R = c(1,1)
+		R = c(100,100)
 	}
 	
 	rndpars = matrix(NA, ncol = N, nrow = n.sim * n.restarts)

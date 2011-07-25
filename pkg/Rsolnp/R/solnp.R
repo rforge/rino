@@ -116,7 +116,13 @@ solnp = function(pars, fun, eqfun = NULL, eqB = NULL, ineqfun = NULL, ineqLB = N
 		ind[4] 	= 1
 		nineq 	= length(ineqLB)
 		ind[5] 	= nineq
-		ineqx0 	= (.ineqLB + .ineqUB)/2
+		
+		# check for infinities/nans
+		.ineqLBx = .ineqLB
+		.ineqUBx = .ineqUB
+		.ineqLBx[!is.finite(.ineqLB)] = -1e10
+		.ineqUBx[!is.finite(.ineqUB)] =  1e10
+		ineqx0 	= (.ineqLBx + .ineqUBx)/2
 		#if(!is.null(ineqgrad)){
 		#	ineqjacv = .cheqjacineq(pars, gradineq, .ineqUB, .ineqLB, .solnpenv, ...)
 		#	ind[6] = 1
