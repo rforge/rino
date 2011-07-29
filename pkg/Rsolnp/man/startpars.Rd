@@ -14,7 +14,7 @@ The sampled points can be generated from the uniform, normal or truncated normal
 startpars(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ineqfun = NULL, ineqLB = NULL, 
 		ineqUB = NULL, LB = NULL, UB = NULL, distr = rep(1, length(LB)), distr.opt = list(), 
 		n.sim = 20000, parallel = FALSE, parallel.control = list(pkg = c("multicore", "snowfall"), cores = 2), 
-		rseed = NULL, bestN = 15, eval.type = 1, ...)
+		rseed = NULL, bestN = 15, eval.type = 1, trace = FALSE, ...)
 }
 \arguments{
   \item{pars}{
@@ -76,6 +76,9 @@ The parallel control options including the type of package for performing the pa
 Either 1 (default) for the direction evaluation of the function (excluding inequality constraint violations) 
 or 2 for the penalty barrier method.
 }
+  \item{trace}{
+(logical) Whether to display the progress of the function evaluation.
+}
   \item{\dots}{
 (Optional) Additional parameters passed to the main, equality or inequality functions
 }
@@ -101,4 +104,51 @@ of knowledge in the upper or lower bounds, but some confidence in the location a
 In using choices (2) and (3) for \code{distr}, the \code{distr.opt} list must be supplied with \code{mean} and 
 \code{sd} as subcomponents for those parameters not using the uniform.
 }
+\examples{
+\dontrun{
+# Parallel example (change to cores to your own requirements in the example below)
+# Always load snowfall manually as it might fail if loaded by the program on request
+
+library(Rsolnp)
+library(snowfall)
+gofn = function(dat, n)
+{
+	
+	x = dat[1:n]
+	y = dat[(n+1):(2*n)]
+	z = dat[(2*n+1):(3*n)]
+	ii = matrix(1:n, ncol = n, nrow = n, byrow = TRUE)
+	jj = matrix(1:n, ncol = n, nrow = n)
+	ij = which(ii<jj, arr.ind = TRUE)
+	i = ij[,1]
+	j = ij[,2]
+	#  Coulomb potential
+	potential = sum(1.0/sqrt((x[i]-x[j])^2 + (y[i]-y[j])^2 + (z[i]-z[j])^2))
+	potential
+}
+
+goeqfn = function(dat, n)
+{
+	x = dat[1:n]
+	y = dat[(n+1):(2*n)]
+	z = dat[(2*n+1):(3*n)]
+	apply(cbind(x^2, y^2, z^2), 1, "sum")
+}
+n = 25
+LB = rep(-1, 3*n)
+UB = rep(1,  3*n)
+eqB = rep(1, n)
+
+sp = startpars(pars = NULL, fixed = NULL, fun = gofn , eqfun = goeqfn , eqB = eqB, ineqfun = NULL, ineqLB = NULL, 
+		ineqUB = NULL, LB = LB, UB = UB, distr = rep(1, length(LB)), distr.opt = list(), 
+		n.sim = 2000, parallel = TRUE, parallel.control = list(pkg = c("snowfall"), cores = 2), 
+		rseed = 100, bestN = 15, eval.type = 2, n = 25)
+# the last column is the value of the evaluated function (here it is the barrier function since eval.type = 2)
+print(round(apply(sp, 2, "mean"), 3))
+# remember to remove the last column
+ans = solnp(pars=sp[1,-76],fun = gofn , eqfun = goeqfn , eqB = eqB, ineqfun = NULL, ineqLB = NULL, 
+		ineqUB = NULL, LB = LB, UB = UB, n = 25)
+# should get a value of around 243.8162
+}}
+
 \keyword{optimize}

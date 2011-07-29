@@ -122,7 +122,7 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 			}, mc.cores = parallel.control$cores)
 		} else{
 			if(!exists("sfLapply")){
-				require('snowfall')
+				library('snowfall', pos = "package:base")
 			}
 			sfInit(parallel=TRUE, cpus = parallel.control$cores)
 			sfExport("spars", "xnames", "fun", "eqfun", "eqB", "ineqfun","ineqLB", "ineqUB", "LB", "UB", "control", "...", local = TRUE)
@@ -177,13 +177,13 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ineqfun = NULL, ineqLB = NULL, 
 		ineqUB = NULL, LB = NULL, UB = NULL, distr = rep(1, length(LB)), distr.opt = list(), 
 		n.sim = 20000, parallel = FALSE, parallel.control = list(pkg = c("multicore", "snowfall"), cores = 2), rseed = NULL, 
-		bestN = 15, eval.type = 1, ...)
+		bestN = 15, eval.type = 1, trace = FALSE, ...)
 {
 	if( !is.null(pars) ) xnames = names(pars) else xnames = NULL
 	if(is.null(eval.type)) parmethod = 1 else parmethod = as.integer(min(abs(eval.type),2))
 	if(parmethod == 0) parmethod = 1
 	eval.type = NULL
-	trace = FALSE
+	#trace = FALSE
 	# use a seed to initialize random no. generation
 	if(is.null(rseed)) rseed = as.numeric(Sys.time()) else rseed = as.integer(rseed)
 	# function requires both upper and lower bounds
@@ -227,11 +227,11 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, i
 	.randpars(pars = pars, fixed = fixed, fun = fun, eqfun = eqfun, eqB = eqB,  
 					ineqfun = ineqfun, ineqLB = ineqLB, ineqUB = ineqUB, LB = LB, UB = UB, 
 					distr = distr, distr.opt = distr.opt, n.restarts = as.integer(bestN), n.sim = n.sim,
-					rseed = rseed, trace = FALSE, xnames, parallel = parallel, parallel.control = parallel.control, ...),		
+					rseed = rseed, trace = trace, xnames, parallel = parallel, parallel.control = parallel.control, ...),		
 	.randpars2(pars = pars, fixed = fixed, fun = fun, eqfun = eqfun, eqB = eqB,  
 			ineqfun = ineqfun, ineqLB = ineqLB, ineqUB = ineqUB, LB = LB, UB = UB, 
 			distr = distr, distr.opt = distr.opt, n.restarts = as.integer(bestN), n.sim = n.sim,
-			rseed = rseed, trace = FALSE, xnames, parallel = parallel, parallel.control = parallel.control, ...))
+			rseed = rseed, trace = trace, xnames, parallel = parallel, parallel.control = parallel.control, ...))
 	return(spars)
 }
 
@@ -301,23 +301,22 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, i
 			if(!exists("mclapply")){
 				require('multicore')
 			}
-			evfun = mclapply(1:nx, FUN = function(i) .lagrfun(c(rndpars[i,],R), m, idx, 
-								fun, eqfun, eqB, ineqLB, ineqUB, ...), 
+			evfun = mclapply(1:nx, FUN = function(i) .lagrfun(c(rndpars[i,],R), m, idx, fun, eqfun, eqB, ineqfun, ineqLB, ineqUB, ...), 
 					mc.cores = parallel.control$cores)
 			evfun = as.numeric( unlist(evfun) )
 		} else{
 			if(!exists("sfLapply")){
-				require('snowfall')
+				library('snowfall', pos = "package:base")
 			}
 			sfInit(parallel = TRUE, cpus = parallel.control$cores)
-			sfExport("rndpars", "fun", "tmpenvir", "...", local = TRUE)
+			sfExport("rndpars", "fun", "eqfun", "eqB", "ineqfun", "ineqLB", "ineqUB",  "m", "idx", "R", "...", local = TRUE)
 			evfun = sfLapply(as.list(1:nx), fun = function(i) Rsolnp:::.lagrfun(c(rndpars[i,],R), m, idx, 
-								fun, eqfun, eqB, ineqLB, ineqUB, ...))
+								fun, eqfun, eqB, ineqfun, ineqLB, ineqUB, ...))
 			sfStop()
 			evfun = as.numeric( unlist(evfun) )
 		}
 	} else{
-		evfun = apply(rndpars, 1, FUN = function(x) .lagrfun(c(x,R), m, idx, fun, eqfun, eqB, ineqLB, ineqUB, ...))
+		evfun = apply(rndpars, 1, FUN = function(x) .lagrfun(c(x,R), m, idx, fun, eqfun, eqB, ineqfun, ineqLB, ineqUB, ...))
 	}
 	if(trace) cat("ok!\n")
 	if(trace) cat("\nSorting and Choosing Best Candidates for starting Solver...")	
@@ -433,7 +432,7 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, i
 				evfun = as.numeric( unlist(evfun) )
 		} else{
 			if(!exists("sfLapply")){
-				require('snowfall')
+				library('snowfall', pos = "package:base")
 			}
 			sfInit(parallel = TRUE, cpus = parallel.control$cores)
 			sfExport("rndpars", "fun", "tmpenvir", "...", local = TRUE)
