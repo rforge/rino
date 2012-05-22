@@ -1,4 +1,4 @@
-2012-03-25  Alexios Ghalanos <alexios@4dscape.com>
+2012-05-22  Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.12
 	* Fix to .onLoad in zzz.R
 
