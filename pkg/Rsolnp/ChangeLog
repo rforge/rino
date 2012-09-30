@@ -1,5 +1,9 @@
 2012-05-22  Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.12
+	* Fix to rtruncnorm call.
+	
+2012-05-22  Alexios Ghalanos <alexios@4dscape.com>
+	* DESCRIPTION (Version): New version is 1.12
 	* Fix to .onLoad in zzz.R
 
 2011-07-15  Alexios Ghalanos <alexios@4dscape.com>

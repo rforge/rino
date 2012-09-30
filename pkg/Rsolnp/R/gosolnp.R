@@ -125,7 +125,7 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 				library('snowfall', pos = "package:base")
 			}
 			sfInit(parallel=TRUE, cpus = parallel.control$cores)
-			sfExport("spars", "xnames", "fun", "eqfun", "eqB", "ineqfun","ineqLB", "ineqUB", "LB", "UB", "control", "...", local = TRUE)
+			sfExport("spars", "xnames", "fun", "eqfun", "eqB", "ineqfun","ineqLB", "ineqUB", "LB", "UB", "control", "...", local = TRUE)			
 			solution = sfLapply(as.list(1:n.restarts), fun = function(i) {
 				xx = spars[i,]
 				names(xx) = xnames
@@ -485,7 +485,7 @@ pclfn = function(x){
 
 .distr2 = function(LB, UB, n, mean, sd)
 {
-	rtruncnorm(n, a = as.double(LB), b = as.double(UB), mean = as.double(mean), sd = as.double(sd))
+	truncnorm::rtruncnorm(n, a = as.double(LB), b = as.double(UB), mean = as.double(mean), sd = as.double(sd))
 }
 
 .distr3 = function(n, mean, sd)
