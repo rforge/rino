@@ -79,7 +79,7 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 	}
 	# setup cluster exports:
 	if(!is.null(cluster)){		
-		clusterExport(cl = cluster, varlist=c("gosolnp_parnames", "fun", "eqfun", 
+		clusterExport(cl = cluster, c("gosolnp_parnames", "fun", "eqfun", 
 						"eqB", "ineqfun", "ineqLB", "ineqUB", "LB", "UB"), envir = environment())
 		if(!is.null(names(list(...)))) try(clusterExport(cl = cluster, varlist = names(list(...)), envir = environment()))
 		clusterEvalQ(cl = cluster, require(Rsolnp))
@@ -105,7 +105,7 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 	solution = vector(mode = "list", length = n.restarts)
 	if( !is.null(cluster) )
 	{
-		clusterExport(cl = cluster, varlist=c("gosolnp_rndpars"), envir = environment())
+		clusterExport(cl = cluster, c("gosolnp_rndpars"), envir = environment())
 		solution = parLapply(cl = cluster, as.list(1:n.restarts), fun = function(i) {
 					xx = gosolnp_rndpars[i,]
 					names(xx) = gosolnp_parnames
@@ -218,7 +218,7 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL,
 	
 	# setup cluster exports:
 	if(!is.null(cluster)){		
-		clusterExport(cl = cluster, varlist=c("gosolnp_parnames", "fun", "eqfun", 
+		clusterExport(cl = cluster, c("gosolnp_parnames", "fun", "eqfun", 
 						"eqB", "ineqfun", "ineqLB", "ineqUB", "LB", "UB"), 
 				envir = environment())
 		if(!is.null(names(list(...)))) clusterExport(cl = cluster, varlist = names(list(...)), envir = environment())
@@ -310,7 +310,7 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL,
 	if(trace) cat("\nEvaluating Objective Function with Random Sampled Parameters...")
 	if( !is.null(cluster) ){
 		nx = dim(gosolnp_rndpars)[1]
-		clusterExport(cl = cluster, varlist=c("gosolnp_rndpars", ".safefun"), envir = environment())
+		clusterExport(cl = cluster, c("gosolnp_rndpars", ".safefun"), envir = environment())
 		evfun = parLapply(cluster, as.list(1:nx), fun = function(i){ .safefun(gosolnp_rndpars[i, ], fun, gosolnp_parnames, ...) })
 		evfun = as.numeric( unlist(evfun) )
 	} else{
@@ -386,8 +386,8 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL,
 	if(trace) cat("\nEvaluating Objective Function with Random Sampled Parameters...")
 	if( !is.null(cluster) ){
 		nx = dim(gosolnp_rndpars)[1]
-		clusterExport(cl = cluster, varlist=c("gosolnp_rndpars", "gosolnp_m", "gosolnp_idx", "gosolnp_R"), envir = environment())
-		clusterExport(cl = cluster, varlist=c("pclfn", ".lagrfun"), envir = environment())
+		clusterExport(cl = cluster, c("gosolnp_rndpars", "gosolnp_m", "gosolnp_idx", "gosolnp_R"), envir = environment())
+		clusterExport(cl = cluster, c("pclfn", ".lagrfun"), envir = environment())
 		evfun = parLapply(cluster, 1:nx, fun = function(i){
 					.lagrfun(c(gosolnp_rndpars[i,], gosolnp_R), gosolnp_m, 
 							gosolnp_idx, fun, eqfun, eqB, ineqfun, ineqLB, 
