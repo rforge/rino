@@ -78,11 +78,18 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 		}
 	}
 	# setup cluster exports:
-	if(!is.null(cluster)){		
-		clusterExport(cl = cluster, c("gosolnp_parnames", "fun", "eqfun", 
+	if( !is.null(cluster) ){
+		parallel::clusterExport(cluster, c("gosolnp_parnames", "fun", "eqfun", 
 						"eqB", "ineqfun", "ineqLB", "ineqUB", "LB", "UB"), envir = environment())
-		if(!is.null(names(list(...)))) try(clusterExport(cl = cluster, varlist = names(list(...)), envir = environment()))
-		clusterEvalQ(cl = cluster, require(Rsolnp))
+		if( !is.null(names(list(...))) ){
+			# evaluate promises
+			xl = names(list(...))
+			for(i in 1:length(xl)){
+				eval(parse(text=paste(xl[i],"=list(...)"[[i]],sep="")))
+			}
+			parallel::clusterExport(cluster, names(list(...)), envir = environment())
+		}
+		parallel::clusterEvalQ(cluster, require(Rsolnp))
 	}
 	# initiate random search
 	gosolnp_rndpars = switch(parmethod,
@@ -101,15 +108,15 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 	
 	gosolnp_rndpars = gosolnp_rndpars[,1:n, drop = FALSE]
 	# initiate solver restarts
-	if(trace) cat("\ngosolnp-->Starting Solver\n")
+	if( trace ) cat("\ngosolnp-->Starting Solver\n")
 	solution = vector(mode = "list", length = n.restarts)
 	if( !is.null(cluster) )
 	{
-		clusterExport(cl = cluster, c("gosolnp_rndpars"), envir = environment())
-		solution = parLapply(cl = cluster, as.list(1:n.restarts), fun = function(i) {
+		parallel::clusterExport(cluster, c("gosolnp_rndpars"), envir = environment())
+		solution = parallel::parLapply(cluster, as.list(1:n.restarts), fun = function(i) {
 					xx = gosolnp_rndpars[i,]
 					names(xx) = gosolnp_parnames
-					ans = try(Rsolnp::solnp(pars = xx, fun = fun, eqfun = eqfun, 
+					ans = try(solnp(pars = xx, fun = fun, eqfun = eqfun, 
 									eqB = eqB, ineqfun = ineqfun, 
 									ineqLB = ineqLB, ineqUB = ineqUB, 
 									LB = LB, UB = UB, 
@@ -123,10 +130,10 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 					return( ans )
 				})
 	} else {
-		solution = lapply(1:n.restarts, FUN = function(i){
+		solution = lapply(as.list(1:n.restarts), FUN = function(i){
 					xx = gosolnp_rndpars[i,]
 					names(xx) = gosolnp_parnames
-					ans = try(Rsolnp::solnp(pars = xx, fun = fun, eqfun = eqfun, 
+					ans = try(solnp(pars = xx, fun = fun, eqfun = eqfun, 
 									eqB = eqB, ineqfun = ineqfun, 
 									ineqLB = ineqLB, ineqUB = ineqUB, 
 									LB = LB, UB = UB, 
@@ -146,7 +153,7 @@ gosolnp = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL, ine
 			stop("\ngosolnp-->Could not find a feasible starting point...exiting\n", call. = FALSE)
 		nb = which(best == min(best, na.rm = TRUE))[1]
 		solution = solution[[nb]]
-		if(trace) cat("\ngosolnp-->Done!\n")
+		if( trace ) cat("\ngosolnp-->Done!\n")
 		solution$start.pars = gosolnp_rndpars[nb,]
 		names(solution$start.pars) = gosolnp_parnames
 		solution$rseed = rseed
@@ -184,7 +191,7 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL,
 		stop("\nstartpars-->error: you need to provide a pars vector if using the fixed option\n", call. = FALSE)
 	if(!is.null(pars)) n = length(pars) else n = length(LB)
 	
-	np = 1:n
+	np = seq_len(n)
 	
 	if(!is.null(fixed)){
 		# make unique
@@ -217,12 +224,19 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL,
 	}
 	
 	# setup cluster exports:
-	if(!is.null(cluster)){		
-		clusterExport(cl = cluster, c("gosolnp_parnames", "fun", "eqfun", 
-						"eqB", "ineqfun", "ineqLB", "ineqUB", "LB", "UB"), 
-				envir = environment())
-		if(!is.null(names(list(...)))) clusterExport(cl = cluster, varlist = names(list(...)), envir = environment())
-		clusterEvalQ(cl = cluster, require(Rsolnp))
+	if( !is.null(cluster) ){		
+		parallel::clusterExport(cluster, c("gosolnp_parnames", "fun", "eqfun", 
+						"eqB", "ineqfun", "ineqLB", "ineqUB", "LB", "UB"), envir = environment())
+		if( !is.null(names(list(...))) ){
+			# evaluate promises
+			xl = names(list(...))
+			for(i in 1:length(xl)){
+				eval(parse(text=paste(xl[i],"=list(...)"[[i]],sep="")))
+			}
+			parallel::clusterExport(cluster, names(list(...)), envir = environment())
+		}
+		if( !is.null(names(list(...))) ) parallel::clusterExport(cluster, names(list(...)), envir = environment())
+		parallel::clusterEvalQ(cluster, require(Rsolnp))
 	}
 	
 	# initiate random search
@@ -247,7 +261,7 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL,
 		LB, UB, distr, distr.opt, n.restarts, n.sim, trace = TRUE, rseed, 
 		gosolnp_parnames, cluster, ...)
 {
-	if(trace) cat("\nCalculating Random Initialization Parameters...")
+	if( trace ) cat("\nCalculating Random Initialization Parameters...")
 	N = length(LB)
 	gosolnp_rndpars = matrix(NA, ncol = N, nrow = n.sim * n.restarts)
 	if(!is.null(fixed)) for(i in 1:length(fixed)) gosolnp_rndpars[,fixed[i]] = pars[fixed[i]]
@@ -264,10 +278,10 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL,
 		)
 	}
 	
-	if(trace) cat("ok!\n")
+	if( trace ) cat("ok!\n")
 	
 	if(!is.null(ineqfun)){
-		if(trace) cat("\nExcluding Inequality Violations...\n")
+		if( trace ) cat("\nExcluding Inequality Violations...\n")
 		ineqv = matrix(NA, ncol = length(ineqLB), nrow = n.restarts*n.sim)
 		# ineqv = t(apply(rndpars, 1, FUN = function(x) ineqfun(x)))
 		if(length(ineqLB) == 1){
@@ -304,26 +318,28 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL,
 				lvx = 0
 			}
 		}
-		if(trace) cat(paste("\n...Excluded ", lvx, "/",n.restarts*n.sim, " Random Sequences\n", sep = ""))
+		if( trace ) cat(paste("\n...Excluded ", lvx, "/",n.restarts*n.sim, " Random Sequences\n", sep = ""))
 	}
 	# evaluate function value
-	if(trace) cat("\nEvaluating Objective Function with Random Sampled Parameters...")
+	if( trace ) cat("\nEvaluating Objective Function with Random Sampled Parameters...")
 	if( !is.null(cluster) ){
 		nx = dim(gosolnp_rndpars)[1]
-		clusterExport(cl = cluster, c("gosolnp_rndpars", ".safefun"), envir = environment())
-		evfun = parLapply(cluster, as.list(1:nx), fun = function(i){ .safefun(gosolnp_rndpars[i, ], fun, gosolnp_parnames, ...) })
+		parallel::clusterExport(cluster, c("gosolnp_rndpars", ".safefun"), envir = environment())
+		evfun = parallel::parLapply(cluster, as.list(1:nx), fun = function(i){ 
+					.safefun(gosolnp_rndpars[i, ], fun, gosolnp_parnames, ...) 
+				})
 		evfun = as.numeric( unlist(evfun) )
 	} else{
 		evfun = apply(gosolnp_rndpars, 1, FUN = function(x) .safefun(x, fun, gosolnp_parnames, ...))
 	}
-	if(trace) cat("ok!\n")
-	if(trace) cat("\nSorting and Choosing Best Candidates for starting Solver...")
+	if( trace ) cat("ok!\n")
+	if( trace ) cat("\nSorting and Choosing Best Candidates for starting Solver...")
 	z = sort.int(evfun, index.return = T)
 	ans = gosolnp_rndpars[z$ix[1:n.restarts],,drop = FALSE]
 	prtable = cbind(ans, z$x[1:n.restarts])
-	if(trace) cat("ok!\n")
+	if( trace ) cat("ok!\n")
 	colnames(prtable) = c(paste("par", 1:N, sep = ""), "objf")
-	if(trace){
+	if( trace ){
 		cat("\nStarting Parameters and Starting Objective Function:\n")
 		if(n.restarts == 1) print(t(prtable), digits = 4) else print(prtable, digits = 4)
 	}
@@ -331,10 +347,11 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL,
 }
 
 # form a barrier function before passing the parameters
-.randpars2 = function(pars, fixed, fun, eqfun, eqB,  ineqfun, ineqLB, ineqUB, LB, UB, 
-		distr, distr.opt, n.restarts, n.sim, rseed, trace = TRUE, gosolnp_parnames, cluster, ...)
+.randpars2 = function(pars, fixed, fun, eqfun, eqB,  ineqfun, ineqLB, ineqUB, LB, 
+		UB, distr, distr.opt, n.restarts, n.sim, rseed, trace = TRUE, 
+		gosolnp_parnames, cluster, ...)
 {
-	if(trace) cat("\nCalculating Random Initialization Parameters...")
+	if( trace ) cat("\nCalculating Random Initialization Parameters...")
 	N = length(LB)
 	gosolnp_idx = "a"
 	gosolnp_R = NULL
@@ -364,7 +381,7 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL,
 				.distr3(n.restarts*n.sim, mean = distr.opt[[j]]$mean, sd = distr.opt[[j]]$sd)
 		)
 	}
-	if(trace) cat("ok!\n")
+	if( trace ) cat("ok!\n")
 	# Barrier Function
 	pclfn = function(x){
 		z=x
@@ -383,29 +400,31 @@ startpars = function(pars = NULL, fixed = NULL, fun, eqfun = NULL, eqB = NULL,
 	}
 	
 	# evaluate function value
-	if(trace) cat("\nEvaluating Objective Function with Random Sampled Parameters...")
+	if( trace ) cat("\nEvaluating Objective Function with Random Sampled Parameters...")
 	if( !is.null(cluster) ){
 		nx = dim(gosolnp_rndpars)[1]
-		clusterExport(cl = cluster, c("gosolnp_rndpars", "gosolnp_m", "gosolnp_idx", "gosolnp_R"), envir = environment())
-		clusterExport(cl = cluster, c("pclfn", ".lagrfun"), envir = environment())
-		evfun = parLapply(cluster, 1:nx, fun = function(i){
+		parallel::clusterExport(cluster, c("gosolnp_rndpars", "gosolnp_m", "gosolnp_idx", 
+						"gosolnp_R"), envir = environment())
+		parallel::clusterExport(cluster, c("pclfn", ".lagrfun"), envir = environment())
+		evfun = parallel::parLapply(cluster, as.list(1:nx), fun = function(i){
 					.lagrfun(c(gosolnp_rndpars[i,], gosolnp_R), gosolnp_m, 
 							gosolnp_idx, fun, eqfun, eqB, ineqfun, ineqLB, 
-							ineqUB, ...)})
+							ineqUB, ...)
+				})
 		evfun = as.numeric( unlist(evfun) )
 	} else{
 		evfun = apply(gosolnp_rndpars, 1, FUN = function(x){
 					.lagrfun(c(x,gosolnp_R), gosolnp_m, gosolnp_idx, fun, eqfun, 
 							eqB, ineqfun, ineqLB, ineqUB, ...)})
 	}
-	if(trace) cat("ok!\n")
-	if(trace) cat("\nSorting and Choosing Best Candidates for starting Solver...")	
+	if( trace ) cat("ok!\n")
+	if( trace ) cat("\nSorting and Choosing Best Candidates for starting Solver...")	
 	z = sort.int(evfun, index.return = T)
 	#distmat = dist(evfun, method = "euclidean", diag = FALSE, upper = FALSE, p = 2)
 	ans = gosolnp_rndpars[z$ix[1:n.restarts],,drop = FALSE]
 	prtable = cbind(ans, z$x[1:n.restarts])
 	colnames(prtable) = c(paste("par", 1:N, sep = ""), "objf")
-	if(trace){
+	if( trace ){
 		cat("\nStarting Parameters and Starting Objective Function:\n")
 		if(n.restarts == 1) print(t(prtable), digits = 4) else print(prtable, digits = 4)
 	}
