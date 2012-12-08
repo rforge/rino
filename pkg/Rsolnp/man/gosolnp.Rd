@@ -101,9 +101,12 @@ violating any inequality constraints, or indirectly via a penalty barrier
 function jointly comprising the objective and constraints. The resulting values 
 are then sorted, and the best N (N = random.restart) parameter vectors 
 (corresponding to the best N objective function values) chosen in order to 
-initialize the solver. Since version 1.14, it is upto the user to prepare and 
+initialize the solver. Since version 1.14, it is up to the user to prepare and 
 pass a cluster object from the parallel package for use with gosolnp, after 
-which the parLapply function is used.
+which the parLapply function is used. If your function makes use of additional
+packages, or functions, then make sure to export them via the \code{clusterExport}
+function of the parallel package. Additional arguments passed to the solver via the
+\dots option are evaluated and exported by gosolnp to the cluster.
 }
 \value{
 A list containing the following values:
@@ -145,7 +148,8 @@ hopefully clarifies the usage).
 }
 \examples{
 \dontrun{
-# Distributions of Electrons on a Sphere Problem
+# [Example 1]
+# Distributions of Electrons on a Sphere Problem:
 # Given n electrons, find the equilibrium state distribution (of minimal Coulomb 
 # potential) of the electrons positioned on a conducting sphere. This model is 
 # from the COPS benchmarking suite. See http://www-unix.mcs.anl.gov/~more/cops/.	
@@ -182,6 +186,62 @@ LB = LB, UB = UB, control = list(outer.iter = 100, trace = 1),
 distr = rep(1, length(LB)), distr.opt = list(), n.restarts = 2, n.sim = 20000, 
 rseed = 443, n = 25)
 # should get a function value around 243.813
+
+# [Example 2]
+# Parallel functionality for solving the Upper to Lower CVaR problem (not properly
+# formulated...for illustration purposes only).
+
+mu =c(1.607464e-04, 1.686867e-04, 3.057877e-04, 1.149289e-04, 7.956294e-05)
+sigma = c(0.02307198,0.02307127,0.01953382,0.02414608,0.02736053)
+R = matrix(c(1, 0.408, 0.356, 0.347, 0.378,  0.408, 1, 0.385, 0.565, 0.578, 0.356, 
+0.385, 1, 0.315, 0.332, 0.347, 0.565, 0.315, 1, 0.662, 0.378, 0.578, 
+0.332, 0.662, 1), 5,5, byrow=TRUE)
+# Generate Random deviates from the multivariate Student distribution
+set.seed(1101)
+v = sqrt(rchisq(10000, 5)/5)
+S = chol(R)
+S = matrix(rnorm(10000 * 5), 10000) \%*\% S
+ret = S/v
+RT = as.matrix(t(apply(ret, 1, FUN = function(x) x*sigma+mu)))
+# setup the functions
+.VaR = function(x, alpha = 0.05)
+{
+	VaR = quantile(x, probs = alpha, type = 1)
+	VaR
+}
+
+.CVaR = function(x, alpha = 0.05)
+{
+	VaR = .VaR(x, alpha)
+	X = as.vector(x[, 1])
+	CVaR = VaR - 0.5 * mean(((VaR-X) + abs(VaR-X))) / alpha
+	CVaR
+}
+.fn1 = function(x,ret)
+{
+	port=ret\%*\%x
+	obj=-.CVaR(-port)/.CVaR(port)
+	return(obj)
+}
+
+# abs(sum) of weights ==1
+.eqn1  = function(x,ret)
+{
+	sum(abs(x))
+}
+
+LB=rep(0,5)
+UB=rep(1,5)
+pars=rep(1/5,5)
+ctrl = list(delta = 1e-10, tol = 1e-8, trace = 0)
+cl = makePSOCKcluster(2)
+# export the auxilliary functions which are used and cannot be seen by gosolnp
+clusterExport(cl, c(".CVaR", ".VaR"))
+ans = gosolnp(pars, fun = .fn1, eqfun = .eqn1, eqB = 1, LB = LB, UB = UB, 
+control = list(n.restarts = 2, n.sim=500), cluster = cl, ret = RT)
+ans
+# don't forget to stop the cluster!
+stopCluster(cl)
 }
 }
 \keyword{optimize}
