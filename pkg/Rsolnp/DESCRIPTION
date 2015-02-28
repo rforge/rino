@@ -1,11 +1,12 @@
 Package: Rsolnp
 Type: Package
 Title: General Non-linear Optimization
-Version: 1.15
-Date: 2013-04-10
+Version: 1.16
+Date: 2015-02-27
 Author: Alexios Ghalanos and Stefan Theussl
 Maintainer: Alexios Ghalanos <alexios@4dscape.com>
-Depends: R (>= 2.10.0), stats, truncnorm, parallel
+Depends: R (>= 2.10.0), stats
+Imports: truncnorm, parallel
 Description: General Non-linear Optimization Using Augmented Lagrange Multiplier Method
 LazyLoad: yes
 License: GPL
