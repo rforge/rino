@@ -1,9 +1,11 @@
-2015-02-28  Alexios Ghalanos <alexios@4dscape.com>
+2015-06-22  Alexios Ghalanos <alexios@4dscape.com>
   * DESCRIPTION (Version): New version is 1.16
 	* Fix to gosolnp for one parameter case thanks to
 David Lawrence Miller.
   * Fix to parallel gosolnp not passing multiple function
 arguments (bug reported by Alex Karagiannis).
+  * rep argument in solnp.R had length rather than length.out (leading
+  to cases name conflict).
 
 2013-04-10  Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.15
