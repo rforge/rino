@@ -1,11 +1,12 @@
-2015-06-22  Alexios Ghalanos <alexios@4dscape.com>
+2015-07-02  Alexios Ghalanos <alexios@4dscape.com>
   * DESCRIPTION (Version): New version is 1.16
 	* Fix to gosolnp for one parameter case thanks to
 David Lawrence Miller.
-  * Fix to parallel gosolnp not passing multiple function
+  	* Fix to parallel gosolnp not passing multiple function
 arguments (bug reported by Alex Karagiannis).
-  * rep argument in solnp.R had length rather than length.out (leading
+  	* rep argument in solnp.R had length rather than length.out (leading
   to cases name conflict).
+	* Fix to pass new CRAN checks which only attach base.
 
 2013-04-10  Alexios Ghalanos <alexios@4dscape.com>
 	* DESCRIPTION (Version): New version is 1.15
