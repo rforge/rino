@@ -5,8 +5,8 @@ Version: 1.16
 Date: 2015-07-02
 Author: Alexios Ghalanos and Stefan Theussl
 Maintainer: Alexios Ghalanos <alexios@4dscape.com>
-Depends: R (>= 2.10.0), stats
+Depends: R (>= 2.10.0)
 Imports: truncnorm, parallel, stats
-Description: General Non-linear Optimization Using Augmented Lagrange Multiplier Method
+Description: General Non-linear Optimization Using Augmented Lagrange Multiplier Method.
 LazyLoad: yes
 License: GPL
